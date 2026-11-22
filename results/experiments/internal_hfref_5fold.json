@@ -36,7 +36,12 @@
         151
       ]
     ],
-    "selective_abstention": null
+    "selective_abstention": {
+      "n_pooled": 2000,
+      "reject_10pct_macc": 0.7105,
+      "reject_20pct_macc": 0.7268,
+      "no_reject_macc": 0.7052
+    }
   },
   "final_metrics_std": {
     "accuracy": 0.0799,
