@@ -1,0 +1,36 @@
+{
+  "domain_to_idx": {
+    "bmd_littmann3200": 0,
+    "circor_digiscope": 1,
+    "fraiwan_littmann3200": 2,
+    "hfref_liyuan_ext": 3,
+    "hfref_tongji": 4,
+    "pascal_iphone": 5,
+    "pn16_training-a": 6,
+    "pn16_training-b": 7,
+    "pn16_training-c": 8,
+    "pn16_training-d": 9,
+    "pn16_training-e": 10,
+    "pn16_training-f": 11,
+    "zch_clean": 12,
+    "zch_noisy": 13
+  },
+  "idx_to_domain": {
+    "0": "bmd_littmann3200",
+    "1": "circor_digiscope",
+    "2": "fraiwan_littmann3200",
+    "3": "hfref_liyuan_ext",
+    "4": "hfref_tongji",
+    "5": "pascal_iphone",
+    "6": "pn16_training-a",
+    "7": "pn16_training-b",
+    "8": "pn16_training-c",
+    "9": "pn16_training-d",
+    "10": "pn16_training-e",
+    "11": "pn16_training-f",
+    "12": "zch_clean",
+    "13": "zch_noisy"
+  },
+  "source": "weights/cls_best.pt::domain_to_idx",
+  "n_domains": 14
+}

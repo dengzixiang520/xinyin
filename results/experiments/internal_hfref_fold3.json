@@ -1,0 +1,423 @@
+{
+  "args": {
+    "config": "configs/experiment_config.yaml",
+    "exp_name": "internal_hfref_fold3",
+    "protocol": "internal_5fold",
+    "train_datasets": [
+      "HFrEF_2025"
+    ],
+    "test_dataset": "ZCHSound_2024",
+    "test_domain": "pn16_training-a",
+    "fold": 3,
+    "label_col": "label_binary_acoustic",
+    "model": "dg_resnet_cbam",
+    "no_cwt": false,
+    "no_cbam": false,
+    "no_mixstyle": false,
+    "no_grl": false,
+    "no_aug": false,
+    "epochs": null
+  },
+  "final_metrics": {
+    "accuracy": 0.85,
+    "sensitivity": 0.5417,
+    "specificity": 0.892,
+    "macc_uar": 0.7169,
+    "macro_f1": 0.6885,
+    "auroc": 0.7237,
+    "ece": 0.0919,
+    "confusion_matrix": [
+      [
+        314,
+        38
+      ],
+      [
+        22,
+        26
+      ]
+    ],
+    "selective_abstention": {
+      "reject_10pct_macc": 0.7047,
+      "reject_20pct_macc": 0.6856
+    },
+    "params_M": 22.932,
+    "latency_ms_5s_clip": 6.19
+  },
+  "history": [
+    {
+      "epoch": 3,
+      "tr_loss": 0.881,
+      "accuracy": 0.8725,
+      "sensitivity": 0.0833,
+      "specificity": 0.9801,
+      "macc_uar": 0.5317,
+      "macro_f1": 0.5334,
+      "auroc": 0.6186,
+      "ece": 0.1051,
+      "confusion_matrix": [
+        [
+          345,
+          7
+        ],
+        [
+          44,
+          4
+        ]
+      ],
+      "selective_abstention": {
+        "reject_10pct_macc": 0.5,
+        "reject_20pct_macc": 0.5
+      }
+    },
+    {
+      "epoch": 6,
+      "tr_loss": 0.8572,
+      "accuracy": 0.7725,
+      "sensitivity": 0.3542,
+      "specificity": 0.8295,
+      "macc_uar": 0.5919,
+      "macro_f1": 0.5686,
+      "auroc": 0.6499,
+      "ece": 0.1064,
+      "confusion_matrix": [
+        [
+          292,
+          60
+        ],
+        [
+          31,
+          17
+        ]
+      ],
+      "selective_abstention": {
+        "reject_10pct_macc": 0.6204,
+        "reject_20pct_macc": 0.6448
+      }
+    },
+    {
+      "epoch": 9,
+      "tr_loss": 0.8151,
+      "accuracy": 0.86,
+      "sensitivity": 0.1875,
+      "specificity": 0.9517,
+      "macc_uar": 0.5696,
+      "macro_f1": 0.5831,
+      "auroc": 0.609,
+      "ece": 0.241,
+      "confusion_matrix": [
+        [
+          335,
+          17
+        ],
+        [
+          39,
+          9
+        ]
+      ],
+      "selective_abstention": {
+        "reject_10pct_macc": 0.5293,
+        "reject_20pct_macc": 0.5243
+      }
+    },
+    {
+      "epoch": 12,
+      "tr_loss": 0.7748,
+      "accuracy": 0.64,
+      "sensitivity": 0.6042,
+      "specificity": 0.6449,
+      "macc_uar": 0.6245,
+      "macro_f1": 0.5232,
+      "auroc": 0.6754,
+      "ece": 0.108,
+      "confusion_matrix": [
+        [
+          227,
+          125
+        ],
+        [
+          19,
+          29
+        ]
+      ],
+      "selective_abstention": {
+        "reject_10pct_macc": 0.6198,
+        "reject_20pct_macc": 0.6271
+      }
+    },
+    {
+      "epoch": 15,
+      "tr_loss": 0.7521,
+      "accuracy": 0.8225,
+      "sensitivity": 0.375,
+      "specificity": 0.8835,
+      "macc_uar": 0.6293,
+      "macro_f1": 0.617,
+      "auroc": 0.6977,
+      "ece": 0.0624,
+      "confusion_matrix": [
+        [
+          311,
+          41
+        ],
+        [
+          30,
+          18
+        ]
+      ],
+      "selective_abstention": {
+        "reject_10pct_macc": 0.6293,
+        "reject_20pct_macc": 0.6612
+      }
+    },
+    {
+      "epoch": 18,
+      "tr_loss": 0.7579,
+      "accuracy": 0.705,
+      "sensitivity": 0.5,
+      "specificity": 0.733,
+      "macc_uar": 0.6165,
+      "macro_f1": 0.5515,
+      "auroc": 0.6797,
+      "ece": 0.0557,
+      "confusion_matrix": [
+        [
+          258,
+          94
+        ],
+        [
+          24,
+          24
+        ]
+      ],
+      "selective_abstention": {
+        "reject_10pct_macc": 0.6266,
+        "reject_20pct_macc": 0.6454
+      }
+    },
+    {
+      "epoch": 21,
+      "tr_loss": 0.7313,
+      "accuracy": 0.775,
+      "sensitivity": 0.4583,
+      "specificity": 0.8182,
+      "macc_uar": 0.6383,
+      "macro_f1": 0.5966,
+      "auroc": 0.7117,
+      "ece": 0.0601,
+      "confusion_matrix": [
+        [
+          288,
+          64
+        ],
+        [
+          26,
+          22
+        ]
+      ],
+      "selective_abstention": {
+        "reject_10pct_macc": 0.6505,
+        "reject_20pct_macc": 0.696
+      }
+    },
+    {
+      "epoch": 24,
+      "tr_loss": 0.724,
+      "accuracy": 0.63,
+      "sensitivity": 0.6458,
+      "specificity": 0.6278,
+      "macc_uar": 0.6368,
+      "macro_f1": 0.5222,
+      "auroc": 0.7057,
+      "ece": 0.1132,
+      "confusion_matrix": [
+        [
+          221,
+          131
+        ],
+        [
+          17,
+          31
+        ]
+      ],
+      "selective_abstention": {
+        "reject_10pct_macc": 0.6698,
+        "reject_20pct_macc": 0.6737
+      }
+    },
+    {
+      "epoch": 27,
+      "tr_loss": 0.707,
+      "accuracy": 0.85,
+      "sensitivity": 0.5417,
+      "specificity": 0.892,
+      "macc_uar": 0.7169,
+      "macro_f1": 0.6885,
+      "auroc": 0.7192,
+      "ece": 0.0861,
+      "confusion_matrix": [
+        [
+          314,
+          38
+        ],
+        [
+          22,
+          26
+        ]
+      ],
+      "selective_abstention": {
+        "reject_10pct_macc": 0.7091,
+        "reject_20pct_macc": 0.6792
+      }
+    },
+    {
+      "epoch": 30,
+      "tr_loss": 0.7148,
+      "accuracy": 0.7675,
+      "sensitivity": 0.5417,
+      "specificity": 0.7983,
+      "macc_uar": 0.67,
+      "macro_f1": 0.6083,
+      "auroc": 0.6958,
+      "ece": 0.0599,
+      "confusion_matrix": [
+        [
+          281,
+          71
+        ],
+        [
+          22,
+          26
+        ]
+      ],
+      "selective_abstention": {
+        "reject_10pct_macc": 0.6873,
+        "reject_20pct_macc": 0.7141
+      }
+    },
+    {
+      "epoch": 33,
+      "tr_loss": 0.6784,
+      "accuracy": 0.7675,
+      "sensitivity": 0.5208,
+      "specificity": 0.8011,
+      "macc_uar": 0.661,
+      "macro_f1": 0.604,
+      "auroc": 0.7059,
+      "ece": 0.0641,
+      "confusion_matrix": [
+        [
+          282,
+          70
+        ],
+        [
+          23,
+          25
+        ]
+      ],
+      "selective_abstention": {
+        "reject_10pct_macc": 0.6876,
+        "reject_20pct_macc": 0.7048
+      }
+    },
+    {
+      "epoch": 36,
+      "tr_loss": 0.6855,
+      "accuracy": 0.785,
+      "sensitivity": 0.5417,
+      "specificity": 0.8182,
+      "macc_uar": 0.6799,
+      "macro_f1": 0.6235,
+      "auroc": 0.7083,
+      "ece": 0.0475,
+      "confusion_matrix": [
+        [
+          288,
+          64
+        ],
+        [
+          22,
+          26
+        ]
+      ],
+      "selective_abstention": {
+        "reject_10pct_macc": 0.6968,
+        "reject_20pct_macc": 0.712
+      }
+    },
+    {
+      "epoch": 39,
+      "tr_loss": 0.6728,
+      "accuracy": 0.745,
+      "sensitivity": 0.6042,
+      "specificity": 0.7642,
+      "macc_uar": 0.6842,
+      "macro_f1": 0.6016,
+      "auroc": 0.7071,
+      "ece": 0.0571,
+      "confusion_matrix": [
+        [
+          269,
+          83
+        ],
+        [
+          19,
+          29
+        ]
+      ],
+      "selective_abstention": {
+        "reject_10pct_macc": 0.6868,
+        "reject_20pct_macc": 0.7085
+      }
+    },
+    {
+      "epoch": 42,
+      "tr_loss": 0.6714,
+      "accuracy": 0.735,
+      "sensitivity": 0.6042,
+      "specificity": 0.7528,
+      "macc_uar": 0.6785,
+      "macro_f1": 0.5935,
+      "auroc": 0.7069,
+      "ece": 0.061,
+      "confusion_matrix": [
+        [
+          265,
+          87
+        ],
+        [
+          19,
+          29
+        ]
+      ],
+      "selective_abstention": {
+        "reject_10pct_macc": 0.6835,
+        "reject_20pct_macc": 0.6994
+      }
+    },
+    {
+      "epoch": 45,
+      "tr_loss": 0.6741,
+      "accuracy": 0.7475,
+      "sensitivity": 0.6042,
+      "specificity": 0.767,
+      "macc_uar": 0.6856,
+      "macro_f1": 0.6036,
+      "auroc": 0.7077,
+      "ece": 0.064,
+      "confusion_matrix": [
+        [
+          270,
+          82
+        ],
+        [
+          19,
+          29
+        ]
+      ],
+      "selective_abstention": {
+        "reject_10pct_macc": 0.6931,
+        "reject_20pct_macc": 0.6994
+      }
+    }
+  ]
+}

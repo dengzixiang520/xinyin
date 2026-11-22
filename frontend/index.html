@@ -1206,6 +1206,50 @@
     .sample-cards-grid { display:grid !important; grid-template-columns:repeat(auto-fill,minmax(132px,1fr)) !important; gap:10px !important; }
     .agq-grid, .acq-grid { align-items:start; }
   </style>
+
+  <style>
+    /* ================= v3.1 追加组件（仅新增类名，全部复用既有设计令牌） ================= */
+    .sr-grid-3 { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; }
+    .sr-mode { background:var(--bg-subtle); border:1px solid var(--border-subtle);
+      border-radius:var(--radius-lg); padding:12px 14px; transition:all .2s ease; }
+    .sr-mode.active { border-color:var(--accent-primary); box-shadow:inset 0 0 0 1px var(--accent-primary); }
+    .sr-mode-name { display:flex; align-items:center; justify-content:space-between; gap:6px;
+      font-size:12.5px; font-weight:700; color:var(--text-primary); }
+    .sr-kv { display:flex; justify-content:space-between; gap:8px; margin-top:6px;
+      font-size:11.5px; color:var(--text-secondary); font-family:var(--font-mono); }
+    .sr-note { margin-top:10px; padding-top:8px; border-top:1px dashed var(--border-subtle);
+      font-size:11px; line-height:1.75; color:var(--text-muted); }
+    .tag-gray { background:var(--bg-subtle); color:var(--text-muted); border:1px solid var(--border-subtle); }
+    .sr-tr-pending td { background:color-mix(in srgb, var(--accent-amber) 12%, transparent) !important; }
+    .sr-tr-pending td:first-child { box-shadow:inset 3px 0 0 var(--accent-amber); }
+    .sr-check { display:flex; gap:9px; align-items:flex-start; padding:7px 0;
+      border-bottom:1px dashed var(--border-subtle); font-size:12px; line-height:1.6; color:var(--text-secondary); }
+    .sr-check:last-child { border-bottom:none; }
+    .sr-dot { flex:0 0 8px; width:8px; height:8px; border-radius:50%; margin-top:5px; }
+    .sr-dot.ok { background:var(--accent-emerald); box-shadow:0 0 7px var(--accent-emerald); }
+    .sr-dot.bad { background:var(--accent-rose); box-shadow:0 0 7px var(--accent-rose); }
+    .sr-wrap { white-space:normal; word-break:break-word; line-height:1.55; min-width:200px; }
+    .sr-chips { display:inline-flex; gap:3px; vertical-align:middle; }
+    .sr-chip { display:inline-block; width:15px; height:6px; border-radius:2px; background:var(--border-subtle); }
+    .sr-chip.on { background:var(--accent-emerald); }
+    .sr-toolbar { display:flex; flex-wrap:wrap; align-items:center; gap:10px; margin-bottom:12px; }
+    .sr-sum { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:10px; }
+    .sr-sum-chip { padding:4px 11px; border-radius:999px; background:var(--bg-subtle);
+      border:1px solid var(--border-subtle); font-family:var(--font-mono); font-size:11.5px; color:var(--text-secondary); }
+    .sr-sum-chip b { color:var(--text-primary); }
+    .sr-detail { margin-top:12px; padding:14px 16px; border-radius:var(--radius-lg);
+      background:var(--bg-subtle); border:1px solid var(--border-subtle);
+      font-size:12px; line-height:1.8; color:var(--text-secondary); }
+    .sr-scroll { overflow-x:auto; }
+    .sr-hist-row { cursor:pointer; }
+    .sr-hist-row:hover td { background:var(--bg-card-hover); }
+    .ai-verdict-banner.pending {
+      background:linear-gradient(135deg, color-mix(in srgb, var(--accent-amber) 15%, transparent) 0%,
+        color-mix(in srgb, var(--accent-amber) 4%, transparent) 100%);
+      border-color:color-mix(in srgb, var(--accent-amber) 45%, transparent);
+    }
+    @media (max-width:1180px) { .sr-grid-3 { grid-template-columns:1fr; } }
+  </style>
 </head>
 <body data-theme="sky">
 
@@ -1251,6 +1295,10 @@
         <button class="nav-pill" data-page="research" onclick="switchPage('research')">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 19V5M4 19h16"/><rect x="7" y="11" width="3" height="8"/><rect x="12" y="7" width="3" height="12"/><rect x="17" y="14" width="3" height="5"/></svg>
           论文实验看板
+        </button>
+        <button class="nav-pill" data-page="review" onclick="switchPage('review')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M9 12h6M9 16h6"/></svg>
+          复核与历史
         </button>
       </nav>
 
@@ -1425,6 +1473,38 @@
           </div>
         </div>
       </div>
+
+      <!-- ================= D1 · 批量分析 ================= -->
+      <div class="bento-card" style="margin-top:16px;">
+        <div class="section-head" style="margin-bottom:10px;">
+          <div class="section-title">
+            <div class="section-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h10M4 12h10M4 18h6"/><path d="M17 12v7m0 0l3-3m-3 3l-3-3"/></svg>
+            </div>
+            <span>批量分析 · 多文件一起过质控与门控</span>
+          </div>
+          <span class="tag tag-cyan" id="batchCap">上限 12 个文件</span>
+        </div>
+        <div class="sr-toolbar">
+          <input type="file" id="batchInput" multiple accept=".wav,.flac,.mp3,.ogg"
+                 class="glass-input" style="max-width:430px;padding:7px 10px;font-size:12px;" />
+          <button class="uiverse-btn uiverse-btn-sm uiverse-btn-glow" id="batchBtn" onclick="srBatchRun()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            开始批量分析
+          </button>
+          <span class="tag tag-gray" id="batchPick">未选择文件</span>
+        </div>
+        <div class="sr-sum" id="batchSummary"></div>
+        <div class="sr-scroll">
+          <table class="research-table" id="batchTable">
+            <thead>
+              <tr><th>文件名</th><th>时长 (s)</th><th>质控</th><th>异常概率</th><th>不确定度</th><th>判定</th><th>命中门</th></tr>
+            </thead>
+            <tbody id="batchBody"></tbody>
+          </table>
+        </div>
+        <div class="sr-note" id="batchNote"></div>
+      </div>
     </section>
 
     <!-- ==================================================================== -->
@@ -1551,6 +1631,59 @@
         </div>
       </div>
 
+      <!-- ================= C1 · 拒识门控面板 ================= -->
+      <div class="bento-card" id="gatePanel" style="margin-top:16px;">
+        <div class="section-head" style="margin-bottom:10px;">
+          <div class="section-title">
+            <div class="section-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7l8-4Z"/><path d="M9 12l2 2 4-4"/></svg>
+            </div>
+            <span>拒识门控 · 三档操作点</span>
+          </div>
+          <span class="tag tag-gray" id="gateNowTag">—</span>
+        </div>
+        <div class="sr-toolbar">
+          <div class="segmented-bar" id="gateModeBtns" style="margin-bottom:0;"></div>
+          <span style="font-size:11.5px;color:var(--text-muted);">切换档位后会用 gate_mode 重新调用分析接口</span>
+        </div>
+        <div class="sr-sum" id="gateThresholdRow"></div>
+        <div style="font-size:12px;line-height:1.7;color:var(--text-secondary);" id="gateHitText">尚未分析。</div>
+        <div class="chart-box" style="margin-top:12px;">
+          <h4>认知不确定度刻度（0 → 0.45）</h4>
+          <canvas id="uncRulerCanvas" height="72"></canvas>
+        </div>
+        <div class="sr-note" id="gateNote"></div>
+      </div>
+
+      <!-- ================= C2 · 模型对比面板 ================= -->
+      <div class="bento-card" id="cmpPanel" style="margin-top:16px;">
+        <div class="section-head" style="margin-bottom:10px;">
+          <div class="section-title">
+            <div class="section-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h7M4 12h7M4 18h7"/><path d="M17 6h3M17 12h3M17 18h3"/><path d="M13 4v16"/></svg>
+            </div>
+            <span>模型结构对比 · 同一样本四模型横评</span>
+          </div>
+          <span class="tag tag-gray" id="cmpAgree">—</span>
+        </div>
+        <div class="sr-toolbar">
+          <button class="uiverse-btn uiverse-btn-sm uiverse-btn-glow" id="cmpBtn" onclick="srCompare()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg>
+            对比当前样本
+          </button>
+          <span style="font-size:11.5px;color:var(--text-muted);" id="cmpTarget">目标样本 —</span>
+        </div>
+        <div class="sr-scroll">
+          <table class="research-table" id="cmpTable">
+            <thead>
+              <tr><th>模型</th><th>结构开关 (CWT/CBAM/Mix/GRL)</th><th>参数量</th><th>异常概率</th><th>不确定度</th><th>判定</th><th>命中门</th></tr>
+            </thead>
+            <tbody id="cmpBody"></tbody>
+          </table>
+        </div>
+        <div class="sr-note" id="cmpNote"></div>
+      </div>
+
       <div class="bento-card clinical-sheet" id="reportSheet" style="margin-top:16px;">
         <div class="section-head" style="margin-bottom:12px;">
           <div class="section-title"><span>声见其迹 · 人体生理声音智能辅助分析报告单</span></div>
@@ -1603,7 +1736,7 @@
       <div class="bento-card" style="margin-bottom:16px;">
         <div class="section-head" style="margin-bottom:10px;">
           <div class="section-title"><span>Table 2 / 3 / 4 · 分类实验真实指标</span></div>
-          <span class="tag tag-amber">训练中项显示为 TBD</span>
+          <span class="tag tag-emerald">全部为真实训练产物 · 未完成项才显示 TBD</span>
         </div>
         <div style="overflow-x:auto;">
           <table class="research-table" id="expTable">
@@ -1631,6 +1764,183 @@
             <tbody id="datasetTableBody"></tbody>
           </table>
         </div>
+      </div>
+
+      <!-- ================= A1 · Table 4 消融实验差值 ================= -->
+      <div class="bento-card" style="margin-top:16px;">
+        <div class="section-head" style="margin-bottom:10px;">
+          <div class="section-title">
+            <div class="section-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19V5M4 19h16"/><rect x="7" y="11" width="3" height="8"/><rect x="12" y="7" width="3" height="12"/></svg>
+            </div>
+            <span>Table 4 · 消融实验差值</span>
+          </div>
+          <span class="tag tag-gray" id="ablProgress">—</span>
+        </div>
+        <div style="font-size:11.5px;color:var(--text-muted);margin-bottom:8px;" id="ablBaseline">基准模型 —</div>
+        <div class="sr-scroll">
+          <table class="research-table" id="ablTable">
+            <thead>
+              <tr><th>移除的机制</th><th>MAcc</th><th>ΔMAcc</th><th>ΔAUROC</th><th>Se</th><th>Sp</th><th>结论</th></tr>
+            </thead>
+            <tbody id="ablBody"></tbody>
+          </table>
+        </div>
+        <div class="sr-note" id="ablNote"></div>
+      </div>
+
+      <!-- ================= A2 · 风险-覆盖率曲线 ================= -->
+      <div class="bento-card" style="margin-top:16px;">
+        <div class="section-head" style="margin-bottom:10px;">
+          <div class="section-title">
+            <div class="section-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 15l4-6 3 4 4-7"/></svg>
+            </div>
+            <span>风险-覆盖率曲线 · 拒识机制实证</span>
+          </div>
+          <span class="tag tag-cyan" id="selTag">—</span>
+        </div>
+        <div class="chart-box">
+          <h4>拒识后 MAcc 随覆盖率变化（横轴＝覆盖率 0→1，纵轴＝MAcc）</h4>
+          <canvas id="selCurveCanvas" height="230"></canvas>
+          <div class="mini-legend">
+            <span><i style="background:var(--accent-primary);"></i>不确定度门</span>
+            <span><i style="background:var(--accent-rose);"></i>决策边际门（虚线）</span>
+            <span><i style="background:var(--accent-emerald);"></i>操作点（标准档）</span>
+          </div>
+        </div>
+        <div class="sr-grid-3" id="selModes" style="margin-top:12px;"></div>
+        <div class="sr-note" id="selNote"></div>
+      </div>
+
+      <!-- ================= A3 · 概率校准可靠度图 ================= -->
+      <div class="bento-card" style="margin-top:16px;">
+        <div class="section-head" style="margin-bottom:10px;">
+          <div class="section-title">
+            <div class="section-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v4l3 2"/></svg>
+            </div>
+            <span>概率校准 · 可靠度图</span>
+          </div>
+          <span class="tag tag-cyan" id="calibTag">—</span>
+        </div>
+        <div class="chart-box">
+          <h4>平均置信度 vs 经验准确率（横轴＝平均置信度，纵轴＝经验准确率）</h4>
+          <canvas id="calibCanvas" height="230"></canvas>
+          <div class="mini-legend">
+            <span><i style="background:var(--text-muted);"></i>45° 完全校准参考线</span>
+            <span><i style="background:var(--accent-cyan);"></i>分箱经验准确率</span>
+            <span><i style="background:var(--accent-primary);"></i>分箱平均置信度</span>
+          </div>
+        </div>
+        <div style="margin-top:12px;" id="calibEce"></div>
+        <div class="sr-note" id="calibNote"></div>
+      </div>
+
+      <!-- ================= A4 · 跨设备域分解 ================= -->
+      <div class="bento-card" style="margin-top:16px;">
+        <div class="section-head" style="margin-bottom:10px;">
+          <div class="section-title">
+            <div class="section-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M6 21V9l6-4 6 4v12"/><path d="M10 21v-6h4v6"/></svg>
+            </div>
+            <span>跨设备域分解 · 门控对各采集域的作用</span>
+          </div>
+          <span class="tag tag-cyan" id="domainTag">—</span>
+        </div>
+        <div class="sr-scroll">
+          <table class="research-table" id="domainTable">
+            <thead>
+              <tr><th>采集域</th><th>样本占比</th><th>MAcc（不给结论）</th><th>MAcc（开拒识）</th><th>覆盖率</th><th>Se（门控）</th><th>Sp（门控）</th></tr>
+            </thead>
+            <tbody id="domainBody"></tbody>
+          </table>
+        </div>
+        <div class="sr-note" id="domainGap"></div>
+      </div>
+
+      <!-- ================= B1 · 数据可追溯性与隔离性检查 ================= -->
+      <div class="bento-card" style="margin-top:16px;">
+        <div class="section-head" style="margin-bottom:10px;">
+          <div class="section-title">
+            <div class="section-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3 8-8"/><path d="M21 12a9 9 0 1 1-6.2-8.6"/></svg>
+            </div>
+            <span>数据可追溯性与隔离性检查</span>
+          </div>
+          <span class="tag tag-emerald" id="auditSummary">—</span>
+        </div>
+        <div id="auditChecks"></div>
+        <div class="sr-scroll" style="margin-top:12px;">
+          <table class="research-table" id="auditTable">
+            <thead>
+              <tr><th>数据集</th><th>记录</th><th>受试者</th><th>时长 (h)</th><th>许可证</th><th>角色</th><th>是否参与训练</th></tr>
+            </thead>
+            <tbody id="auditBody"></tbody>
+          </table>
+        </div>
+        <div class="sr-note" id="auditNote"></div>
+      </div>
+    </section>
+
+    <!-- ==================================================================== -->
+    <!-- MODULE 6 · 复核与历史 (人工闭环 + 可追溯记录)                          -->
+    <!-- ==================================================================== -->
+    <section id="page-review" class="page-view">
+      <div class="section-head" style="margin-bottom:16px;">
+        <div class="section-title">
+          <div class="section-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M9 12h6M9 16h6"/></svg>
+          </div>
+          <span>复核与历史 · 人工闭环与可追溯记录</span>
+        </div>
+        <span class="tag tag-cyan">/api/stats · /api/review-queue · /api/history</span>
+      </div>
+
+      <!-- E1 统计条 -->
+      <div class="bento-card" style="margin-bottom:16px;">
+        <div class="section-head" style="margin-bottom:10px;">
+          <div class="section-title"><span>运行统计</span></div>
+          <span class="tag tag-emerald" id="statsTag">—</span>
+        </div>
+        <div class="kpi-grid" id="statsKpi"></div>
+      </div>
+
+      <!-- E2 复核队列 -->
+      <div class="bento-card" style="margin-bottom:16px;">
+        <div class="section-head" style="margin-bottom:10px;">
+          <div class="section-title"><span>复核队列 (status = open)</span></div>
+          <span class="tag tag-amber" id="rqCount">—</span>
+        </div>
+        <div class="sr-scroll">
+          <table class="research-table" id="rqTable">
+            <thead>
+              <tr><th>文件名</th><th>异常概率</th><th>不确定度</th><th>判定</th><th>时间</th><th>操作</th></tr>
+            </thead>
+            <tbody id="rqBody"></tbody>
+          </table>
+        </div>
+        <div class="sr-note" id="rqNote"></div>
+      </div>
+
+      <!-- E3 分析历史 -->
+      <div class="bento-card">
+        <div class="section-head" style="margin-bottom:10px;">
+          <div class="section-title"><span>分析历史 · 最近 50 条</span></div>
+          <button class="uiverse-btn uiverse-btn-sm" onclick="srLoadReview()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v6h-6"/></svg>
+            刷新
+          </button>
+        </div>
+        <div class="sr-scroll">
+          <table class="research-table" id="histTable">
+            <thead>
+              <tr><th>id</th><th>时间</th><th>文件名</th><th>判定</th><th>异常概率</th><th>不确定度</th><th>质控</th></tr>
+            </thead>
+            <tbody id="histBody"></tbody>
+          </table>
+        </div>
+        <div id="histDetail"></div>
       </div>
     </section>
 
@@ -2373,10 +2683,15 @@ function renderAll() {
 }
 
 /* ---------------------------------------------------------------- 分析动作 */
-async function analyzeSample(name) {
+async function analyzeSample(name, persist) {
+  // persist 默认 true: 用户主动点「分析」要留下可复核的记录。
+  // 页面加载时 boot() 会自动分析一次首样本用于填充仪表盘, 那条传 false,
+  // 否则每刷新一次就多一条分析记录, 复核队列会被展示动作污染。
+  const p = (persist === undefined) ? true : !!persist;
   loading(true);
   try {
-    const r = await apiPost('/api/analyze_sample?gradcam=' + (S.showCam ? 'true' : 'false') + '&name=' + encodeURIComponent(name));
+    const r = await apiPost('/api/analyze_sample?gradcam=' + (S.showCam ? 'true' : 'false')
+      + '&name=' + encodeURIComponent(name) + '&persist=' + (p ? 'true' : 'false'));
     applyResult(r, name);
     toast('已分析 ' + name, 'ok');
   } catch (e) {
@@ -2539,7 +2854,7 @@ async function boot() {
 
   // 自动分析第一条真实样本, 保证打开即有内容
   if (S.samples.length) {
-    await analyzeSample(S.samples[0].name);
+    await analyzeSample(S.samples[0].name, false);   // 展示用自动分析: 不写入分析历史与复核队列
   } else {
     renderAll();
   }
@@ -2557,6 +2872,855 @@ window.addEventListener('hashchange', () => {
 });
 
 boot();
+</script>
+
+<script>
+/* =====================================================================
+   SONOTRACE v3.1 · 追加前端逻辑 (纯新增, 不改动既有函数实现)
+   A 论文实验补充卡片 / B 数据可追溯性 / C 拒识门控 + 模型对比 /
+   D 批量分析 / E 复核与历史
+   全部数值来自后端接口; 字段缺失或为 null 时显示 — 或 TBD, 不做任何臆造。
+   ===================================================================== */
+const SR = {
+  ablation: null, selective: null, audit: null, gate: null, calibReady: false,
+  stats: null, queue: null, history: null, batch: null, cmp: null,
+  gateMode: 'standard', histId: null, samples: []
+};
+
+/* ----------------------------------------------------------- 通用工具 */
+function srCss(name) { return getComputedStyle(document.body).getPropertyValue(name).trim() || '#0284c7'; }
+
+function srCanvas(cv, baseH) {
+  const ctx = cv.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  let base = cv.dataset.baseh;
+  if (!base) { base = String(baseH || Number(cv.getAttribute('height')) || 200); cv.dataset.baseh = base; }
+  const h = Number(base);
+  const w = cv.clientWidth || 640;
+  cv.width = Math.round(w * dpr);
+  cv.height = Math.round(h * dpr);
+  cv.style.height = h + 'px';
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, w, h);
+  return { ctx: ctx, w: w, h: h };
+}
+
+function srTick(v) {                 // 0.25 -> "0.25", 1 -> "1"
+  const s = Number(v).toFixed(2);
+  return s.replace(/0+$/, '').replace(/\.$/, '');
+}
+
+/* ----------------------------------------------------------- 折线/柱状图 (canvas 手绘) */
+function srDrawChart(cv, series, opt) {
+  if (!cv) return;
+  opt = opt || {};
+  const g = srCanvas(cv, opt.h || 230);
+  const ctx = g.ctx, w = g.w, h = g.h;
+  const dark = isDark();
+  ctx.fillStyle = dark ? '#172234' : '#f8fafd'; ctx.fillRect(0, 0, w, h);
+
+  const padL = 46, padR = 14, padT = 16, padB = 34;
+  const iw = w - padL - padR, ih = h - padT - padB;
+  const x0 = opt.x0 != null ? opt.x0 : 0, x1 = opt.x1 != null ? opt.x1 : 1;
+  let y0 = opt.y0, y1 = opt.y1;
+  if (y0 == null || y1 == null) {
+    let mn = Infinity, mx = -Infinity;
+    (series || []).forEach(s => s.points.forEach(p => {
+      if (p.y != null) { if (p.y < mn) mn = p.y; if (p.y > mx) mx = p.y; }
+    }));
+    if (!isFinite(mn)) { mn = 0; mx = 1; }
+    const pd = (mx - mn) * 0.15 || 0.05;
+    y0 = mn - pd; y1 = mx + pd;
+  }
+  const X = x => padL + ((x - x0) / (x1 - x0)) * iw;
+  const Y = y => padT + ih - ((y - y0) / (y1 - y0)) * ih;
+  const grid = dark ? 'rgba(255,255,255,.07)' : 'rgba(15,23,42,.06)';
+  const label = dark ? '#94a3b8' : '#94a3b8';
+
+  ctx.font = '9.5px monospace';
+  for (let k = 0; k <= 4; k++) {
+    const yv = y1 - (y1 - y0) * k / 4, py = Y(yv);
+    ctx.strokeStyle = grid;
+    ctx.beginPath(); ctx.moveTo(padL, py); ctx.lineTo(w - padR, py); ctx.stroke();
+    ctx.fillStyle = label; ctx.textAlign = 'right';
+    ctx.fillText(yv.toFixed(3), padL - 5, py + 3);
+  }
+  const xt = opt.xt || [0, 0.25, 0.5, 0.75, 1];
+  ctx.textAlign = 'center';
+  xt.forEach(t => {
+    const px = X(t);
+    ctx.strokeStyle = grid;
+    ctx.beginPath(); ctx.moveTo(px, padT); ctx.lineTo(px, padT + ih); ctx.stroke();
+    ctx.fillStyle = label;
+    ctx.fillText(srTick(t), px, h - 18);
+  });
+
+  (opt.bars || []).forEach(b => {
+    const bx0 = X(b.x0), bx1 = X(b.x1), by = Y(b.y);
+    ctx.fillStyle = b.color;
+    ctx.fillRect(bx0, by, Math.max(1, bx1 - bx0 - 2), padT + ih - by);
+  });
+
+  if (opt.diagonal) {
+    ctx.strokeStyle = label; ctx.lineWidth = 1.2; ctx.setLineDash([5, 4]);
+    ctx.beginPath(); ctx.moveTo(X(x0), Y(y0)); ctx.lineTo(X(x1), Y(y1)); ctx.stroke();
+    ctx.setLineDash([]);
+  }
+
+  (series || []).forEach(s => {
+    ctx.strokeStyle = s.color; ctx.lineWidth = s.width || 2;
+    if (s.dash) ctx.setLineDash(s.dash); else ctx.setLineDash([]);
+    ctx.beginPath();
+    let started = false;
+    s.points.forEach(p => {
+      if (p.y == null) { started = false; return; }
+      const px = X(p.x), py = Y(p.y);
+      started ? ctx.lineTo(px, py) : ctx.moveTo(px, py);
+      started = true;
+    });
+    ctx.stroke();
+    ctx.setLineDash([]);
+  });
+
+  (opt.dots || []).forEach(d => {
+    if (d.x == null || d.y == null) return;
+    ctx.beginPath(); ctx.arc(X(d.x), Y(d.y), d.r || 3, 0, Math.PI * 2);
+    ctx.fillStyle = d.color; ctx.fill();
+  });
+
+  (opt.markers || []).forEach(m => {
+    if (m.x == null || m.y == null) return;
+    const px = X(m.x), py = Y(m.y);
+    ctx.beginPath(); ctx.arc(px, py, 5.5, 0, Math.PI * 2);
+    ctx.fillStyle = m.color; ctx.fill();
+    ctx.strokeStyle = dark ? '#0b1220' : '#ffffff'; ctx.lineWidth = 1.6; ctx.stroke();
+    if (m.label) {
+      ctx.fillStyle = m.color; ctx.font = 'bold 10px monospace';
+      ctx.textAlign = px > padL + iw * 0.72 ? 'right' : 'left';
+      ctx.fillText(m.label, px + (px > padL + iw * 0.72 ? -8 : 8), py - 7);
+    }
+  });
+
+  if (opt.xLabel) {
+    ctx.fillStyle = label; ctx.font = '10px monospace'; ctx.textAlign = 'center';
+    ctx.fillText(opt.xLabel, padL + iw / 2, h - 4);
+  }
+  if (opt.yLabel) {
+    ctx.fillStyle = label; ctx.font = '10px monospace'; ctx.textAlign = 'left';
+    ctx.fillText(opt.yLabel, 2, 10);
+  }
+}
+
+/* ----------------------------------------------------------- A1 · 消融实验差值 */
+async function srLoadAblation() {
+  try { SR.ablation = await apiGet('/api/ablation'); }
+  catch (e) { SR.ablation = { available: false, error: e.message }; }
+  srRenderAblation();
+}
+
+function srAblVerdict(r) {
+  if (r.available === false || r.delta_macc == null || Number.isNaN(Number(r.delta_macc))) {
+    return { txt: '待定', cls: 'tag tag-gray' };
+  }
+  const d = Number(r.delta_macc);
+  if (d >= 0.02) return { txt: '关键（' + signed(d) + '）', cls: 'tag tag-emerald' };
+  if (d > 0) return { txt: '次要', cls: 'tag tag-amber' };
+  return { txt: '无效/负向', cls: 'tag tag-rose' };
+}
+
+function srRenderAblation() {
+  const body = $('ablBody'); if (!body) return;
+  const a = SR.ablation;
+  if (!a || a.available === false || !a.rows || !a.rows.length) {
+    body.innerHTML = '<tr><td colspan="7" style="color:var(--text-muted);">消融结果暂不可用 (TBD)</td></tr>';
+    $('ablBaseline').textContent = '基准模型 —';
+    $('ablProgress').textContent = 'TBD';
+    $('ablNote').textContent = a && a.error ? ('接口错误: ' + a.error) : '';
+    return;
+  }
+  const base = a.baseline || {};
+  $('ablBaseline').textContent = '基准模型 ' + (base.label || base.name || '—')
+    + ' · MAcc ' + fmt(base.macc_uar) + ' · AUROC ' + fmt(base.auroc);
+  $('ablProgress').textContent = (a.n_done != null ? a.n_done : '—') + ' / ' + (a.n_total != null ? a.n_total : '—') + ' 已完成';
+  $('ablProgress').className = 'tag ' + (a.n_done === a.n_total ? 'tag-emerald' : 'tag-amber');
+
+  body.innerHTML = a.rows.map(r => {
+    const off = r.available === false;
+    const v = srAblVerdict(r);
+    const dim = off ? 'color:var(--text-muted);' : '';
+    return '<tr' + (off ? ' style="opacity:.72;"' : '') + '>'
+      + '<td><div>' + esc(r.mechanism || r.name || '—') + '</div>'
+      + '<div style="font-family:var(--font-mono);font-size:10px;color:var(--text-muted);font-weight:400;">' + esc(r.name || '') + '</div></td>'
+      + '<td class="mono" style="' + dim + '">' + (off ? '训练中' : fmt(r.macc_uar)) + '</td>'
+      + '<td class="mono" style="' + dim + '">' + (off ? '—' : signed(r.delta_macc)) + '</td>'
+      + '<td class="mono" style="' + dim + '">' + (off ? '—' : signed(r.delta_auroc)) + '</td>'
+      + '<td class="mono" style="' + dim + '">' + (off ? '—' : fmt(r.sensitivity)) + '</td>'
+      + '<td class="mono" style="' + dim + '">' + (off ? '—' : fmt(r.specificity)) + '</td>'
+      + '<td><span class="' + v.cls + '">' + esc(v.txt) + '</span></td>'
+      + '</tr>';
+  }).join('');
+
+  $('ablNote').textContent = a.note || ('关键机制: ' + (a.most_important || '—'));
+}
+
+/* ----------------------------------------------------------- A2/A3/A4 · 选择性预测 */
+async function srLoadSelective() {
+  try { SR.selective = await apiGet('/api/selective'); }
+  catch (e) { SR.selective = { available: false, error: e.message }; }
+  srRenderSelective();
+  srRenderCalibration();
+  srRenderDomain();
+}
+
+function srRenderSelective() {
+  const d = SR.selective;
+  const cur = d && d.curves;
+  const sel = $('selTag');
+  if (!sel) return;
+  if (!cur || !cur.curve_uncertainty) {
+    sel.textContent = 'TBD'; sel.className = 'tag tag-gray';
+    srDrawChart($('selCurveCanvas'), [], { xLabel: 'coverage', yLabel: 'MAcc' });
+    $('selNote').textContent = d && d.error ? ('接口错误: ' + d.error) : '选择性预测结果暂不可用。';
+    return;
+  }
+  sel.textContent = (cur.experiment || '—') + ' · n=' + (cur.n_test != null ? cur.n_test : '—');
+  sel.className = 'tag tag-cyan';
+
+  const cU = srCss('--accent-primary'), cM = srCss('--accent-rose'), cO = srCss('--accent-emerald');
+  const pts = arr => (arr || []).filter(p => p.macc != null).map(p => ({ x: p.coverage, y: p.macc }));
+  const op = cur.operating_point || {};
+  srDrawChart($('selCurveCanvas'), [
+    { points: pts(cur.curve_uncertainty), color: cU, width: 2.2 },
+    { points: pts(cur.curve_margin), color: cM, width: 2, dash: [6, 4] }
+  ], {
+    x0: 0, x1: 1, xt: [0, 0.25, 0.5, 0.75, 1],
+    xLabel: '覆盖率 coverage', yLabel: 'MAcc',
+    markers: op.coverage != null && op.macc != null ? [{
+      x: op.coverage, y: op.macc, color: cO,
+      label: '标准档 ' + fmt(op.macc) + ' @ ' + pct(op.coverage)
+    }] : []
+  });
+
+  const modes = cur.modes || [];
+  const act = (d.gate && d.gate.mode) || 'standard';
+  $('selModes').innerHTML = modes.map(m => {
+    const mm = m.metrics || {};
+    return '<div class="sr-mode' + (m.mode === act ? ' active' : '') + '">'
+      + '<div class="sr-mode-name"><span>' + esc(m.label || m.mode) + '</span>'
+      + '<span class="tag ' + (m.mode === act ? 'tag-emerald' : 'tag-gray') + '">' + esc(m.mode) + '</span></div>'
+      + '<div class="sr-kv"><span>不确定度阈值</span><span>' + fmt(m.uncertainty_threshold, 4) + '</span></div>'
+      + '<div class="sr-kv"><span>边际阈值</span><span>' + fmt(m.margin_threshold, 3) + '</span></div>'
+      + '<div class="sr-kv"><span>覆盖率</span><span>' + pct(m.coverage) + '</span></div>'
+      + '<div class="sr-kv"><span>MAcc</span><span>' + fmt(mm.macc) + '</span></div>'
+      + '<div class="sr-kv"><span>ΔMAcc</span><span>' + signed(m.gain_macc) + '</span></div>'
+      + '<div style="font-size:10.5px;color:var(--text-muted);margin-top:6px;line-height:1.6;">' + esc(m.note || '') + '</div>'
+      + '</div>';
+  }).join('');
+
+  const ur = cur.uncertainty_range || {};
+  $('selNote').textContent = '拒识阈值在 ' + (cur.experiment || '—') + ' 的 '
+    + (cur.n_test != null ? cur.n_test : '—') + ' 条零样本外测样本上反解；'
+    + '认知不确定度分布 min ' + fmt(ur.min, 4) + ' / median ' + fmt(ur.median, 4)
+    + ' / p90 ' + fmt(ur.p90, 4) + ' / max ' + fmt(ur.max, 4) + '。'
+    + '无助结论基线 MAcc ' + fmt((cur.no_gate || {}).macc) + ' → 标准档 ' + fmt(op.macc)
+    + '（覆盖率 ' + pct(op.coverage) + '）。';
+}
+
+function srRenderCalibration() {
+  const d = SR.selective, cal = d && d.calibration;
+  const tag = $('calibTag'); if (!tag) return;
+  if (!cal || !cal.reliability) {
+    tag.textContent = 'TBD'; tag.className = 'tag tag-gray';
+    srDrawChart($('calibCanvas'), [], { x0: 0, x1: 1, y0: 0, y1: 1, xLabel: '平均置信度', yLabel: '经验准确率' });
+    $('calibEce').innerHTML = '';
+    $('calibNote').textContent = '校准结果暂不可用。';
+    return;
+  }
+  tag.textContent = 'ECE ' + fmt(cal.ece, 4) + ' · n=' + (cal.n != null ? cal.n : '—');
+  tag.className = (cal.ece != null && cal.ece <= 0.1) ? 'tag tag-emerald' : 'tag tag-amber';
+
+  const bars = cal.reliability.map(r => ({
+    x0: (r.bin && r.bin[0] != null) ? r.bin[0] : null,
+    x1: (r.bin && r.bin[1] != null) ? r.bin[1] : null,
+    y: r.empirical_accuracy,
+    color: 'rgba(8,145,178,.20)'
+  })).filter(b => b.x0 != null && b.x1 != null && b.y != null);
+
+  const dots = cal.reliability
+    .filter(r => r.mean_confidence != null && r.empirical_accuracy != null)
+    .map(r => ({ x: r.mean_confidence, y: r.empirical_accuracy, r: 3.2, color: srCss('--accent-primary') }));
+
+  srDrawChart($('calibCanvas'), [], {
+    x0: 0, x1: 1, y0: 0, y1: 1, bars: bars, dots: dots, diagonal: true,
+    xt: [0, 0.2, 0.4, 0.6, 0.8, 1],
+    xLabel: '平均置信度 mean_confidence', yLabel: '经验准确率'
+  });
+
+  const pc = cal.per_class || {};
+  const row = (k, lab) => {
+    const o = pc[k] || {};
+    return '<div class="dim-row"><span>' + lab + ' (n=' + (o.n != null ? o.n : '—') + ')</span>'
+      + '<span class="mono" style="color:var(--text-primary);font-weight:600;">平均预测概率 '
+      + fmt(o.mean_prob, 4) + ' ｜ 实际异常发生率 ' + fmt(o.empirical_rate, 4) + '</span></div>';
+  };
+  $('calibEce').innerHTML = '<div class="dim-row"><span>期望校准误差 ECE</span>'
+    + '<span class="mono" style="color:var(--text-primary);font-weight:600;">' + fmt(cal.ece, 4) + '</span></div>'
+    + row('abnormal', '异常类') + row('normal', '正常类');
+  $('calibNote').textContent = '分箱数 ' + (cal.bins != null ? cal.bins : '—')
+    + '；柱高为各分箱经验准确率，蓝点为该分箱平均置信度；'
+    + '点越贴近 45° 虚线表示校准越好，位于线下方表示模型过度自信（置信度高于实际准确率）。';
+}
+
+function srRenderDomain() {
+  const d = SR.selective, dm = d && d.domain;
+  const body = $('domainBody'); if (!body) return;
+  if (!dm || !dm.domains) {
+    body.innerHTML = '<tr><td colspan="7" style="color:var(--text-muted);">域分解结果暂不可用 (TBD)</td></tr>';
+    $('domainGap').textContent = '';
+    $('domainTag').textContent = 'TBD'; $('domainTag').className = 'tag tag-gray';
+    return;
+  }
+  $('domainTag').textContent = (dm.experiment || '—') + ' · ' + dm.domains.length + ' 域';
+  $('domainTag').className = 'tag tag-cyan';
+  body.innerHTML = dm.domains.map(x => {
+    const ng = x.no_gate || {}, wg = x.with_gate || {};
+    const cov = (ng.n && wg.n != null) ? (wg.n / ng.n) : null;
+    return '<tr>'
+      + '<td><div>' + esc(x.label || x.domain) + '</div>'
+      + '<div style="font-family:var(--font-mono);font-size:10px;color:var(--text-muted);font-weight:400;">'
+      + esc(x.domain || '') + ' · idx ' + (x.domain_idx != null ? x.domain_idx : '—') + '</div></td>'
+      + '<td class="mono">' + pct(x.share) + '</td>'
+      + '<td class="mono">' + fmt(ng.macc) + '</td>'
+      + '<td class="mono"><b>' + fmt(wg.macc) + '</b></td>'
+      + '<td class="mono">' + pct(cov) + '</td>'
+      + '<td class="mono">' + fmt(wg.sensitivity) + '</td>'
+      + '<td class="mono">' + fmt(wg.specificity) + '</td>'
+      + '</tr>';
+  }).join('');
+  const gu = dm.gate_used || {};
+  $('domainGap').textContent = '域间差距 worst − best = ' + fmt(dm.worst_minus_best, 4)
+    + '（同一门控 ' + (gu.mode || '—') + ' 档下，最高域与最低域 MAcc 之差，越大说明域偏移越明显）；'
+    + '覆盖率 = 开拒识后保留样本数 / 该域总样本数，由接口 n 字段直接相除得到。';
+}
+
+/* ----------------------------------------------------------- B1 · 数据可追溯性 */
+async function srLoadAudit() {
+  try { SR.audit = await apiGet('/api/audit'); }
+  catch (e) { SR.audit = { available: false, error: e.message }; }
+  srRenderAudit();
+}
+
+function srRenderAudit() {
+  const a = SR.audit;
+  const chk = $('auditChecks'); if (!chk) return;
+  if (!a || !a.checks) {
+    chk.innerHTML = '<div class="sr-check"><span class="sr-dot bad"></span><span>审计结果暂不可用 (TBD)</span></div>';
+    $('auditSummary').textContent = 'TBD'; $('auditSummary').className = 'tag tag-gray';
+    return;
+  }
+  const allOk = a.n_checks_passed === a.n_checks;
+  $('auditSummary').textContent = '通过 ' + (a.n_checks_passed != null ? a.n_checks_passed : '—')
+    + ' / ' + (a.n_checks != null ? a.n_checks : '—') + ' · 损坏文件 ' + (a.corrupt_total != null ? a.corrupt_total : '—');
+  $('auditSummary').className = 'tag ' + (allOk ? 'tag-emerald' : 'tag-rose');
+
+  chk.innerHTML = a.checks.map(c =>
+    '<div class="sr-check"><span class="sr-dot ' + (c.passed ? 'ok' : 'bad') + '"></span>'
+    + '<span><b style="color:var(--text-primary);">' + (c.passed ? '通过' : '未通过') + '</b> '
+    + esc(c.name) + ' — ' + esc(c.detail) + '</span></div>'
+  ).join('');
+
+  const tb = $('auditBody');
+  const list = a.datasets || [];
+  tb.innerHTML = list.map(d => {
+    const hold = d.is_holdout === true;
+    return '<tr' + (hold ? ' class="best"' : '') + '>'
+      + '<td>' + esc(d.dataset)
+      + (hold ? ' <span class="tag tag-emerald" style="margin-left:4px;">零样本外测</span>' : '') + '</td>'
+      + '<td class="mono">' + (d.recordings != null ? d.recordings.toLocaleString() : '—') + '</td>'
+      + '<td class="mono">' + (d.subjects != null ? d.subjects.toLocaleString() : '—') + '</td>'
+      + '<td class="mono">' + fmt(d.hours, 2) + '</td>'
+      + '<td class="sr-wrap" style="font-size:11.5px;">' + esc(d.license || '—') + '</td>'
+      + '<td class="sr-wrap" style="font-size:11.5px;">' + esc((d.roles || []).join(' · ') || '—') + '</td>'
+      + '<td class="mono">' + (d.used_in_training === true ? '是'
+          : d.used_in_training === false ? '<span style="color:var(--accent-emerald);">否</span>' : '—') + '</td>'
+      + '</tr>';
+  }).join('');
+
+  const cd = a.checks_detail || {};
+  $('auditNote').textContent = '共 ' + (a.n_datasets != null ? a.n_datasets : '—') + ' 个数据集 · '
+    + (a.total_records != null ? a.total_records.toLocaleString() : '—') + ' 条记录 · '
+    + fmt(a.total_hours, 2) + ' h · ' + (a.total_subjects != null ? a.total_subjects.toLocaleString() : '—')
+    + ' 名受试者 · ' + (a.n_domains != null ? a.n_domains : '—') + ' 个设备域；'
+    + '外测受试者 ' + (cd.test_subjects != null ? cd.test_subjects : '—') + ' 人、训练受试者 '
+    + (cd.train_subjects != null ? cd.train_subjects : '—') + ' 人、跨集泄漏 '
+    + (cd.leaked_subjects != null ? cd.leaked_subjects : '—') + ' 人、跨折重复 '
+    + (cd.subjects_multi_fold != null ? cd.subjects_multi_fold : '—') + ' 人。';
+}
+
+/* ----------------------------------------------------------- C1 · 拒识门控 */
+async function srLoadGate() {
+  try { SR.gate = await apiGet('/api/gate'); }
+  catch (e) { SR.gate = { available: false, error: e.message }; }
+  srRenderGateModes();
+}
+
+function srRenderGateModes() {
+  const box = $('gateModeBtns'); if (!box) return;
+  const g = SR.gate;
+  const modes = (g && g.modes) || [];
+  if (!modes.length) {
+    box.innerHTML = '<span style="font-size:11.5px;color:var(--text-muted);padding:4px;">门控配置暂不可用 (TBD)</span>';
+    return;
+  }
+  box.innerHTML = modes.map(m =>
+    '<button class="seg-btn' + (m.mode === SR.gateMode ? ' active' : '') + '" '
+    + 'onclick="srSetGate(\'' + esc(m.mode) + '\')">' + esc(m.label || m.mode) + '</button>'
+  ).join('');
+  const cur = modes.find(m => m.mode === SR.gateMode) || modes[0];
+  const gg = (g && g.current) || {};
+  $('gateNowTag').textContent = (cur.label || cur.mode) + ' · 不确定度阈值 ' + fmt(cur.uncertainty_threshold, 4);
+  $('gateNowTag').className = 'tag ' + (SR.gateMode === 'standard' ? 'tag-emerald' : 'tag-cyan');
+  $('gateThresholdRow').innerHTML =
+    '<span class="sr-sum-chip">当前档位 <b>' + esc(SR.gateMode) + '</b></span>'
+    + '<span class="sr-sum-chip">不确定度阈值 <b>' + fmt(cur.uncertainty_threshold, 4) + '</b></span>'
+    + '<span class="sr-sum-chip">边际阈值 <b>' + fmt(cur.margin_threshold, 3) + '</b></span>'
+    + '<span class="sr-sum-chip">该档覆盖率 <b>' + pct(cur.coverage) + '</b></span>'
+    + '<span class="sr-sum-chip">该档 MAcc <b>' + fmt((cur.metrics || {}).macc) + '</b></span>'
+    + '<span class="sr-sum-chip">校准 <b>' + (gg.calibrated ? '已校准' : '未校准') + '</b></span>';
+  $('gateNote').textContent = (g && g.explain) || '';
+}
+
+async function srSetGate(mode) {
+  SR.gateMode = mode;
+  srRenderGateModes();
+  const name = (S.currentSample || (S.samples[0] && S.samples[0].name) || null);
+  if (!name) { toast('暂无可分析的样本', 'err'); return; }
+  loading(true);
+  try {
+    const url = API + '/api/analyze_sample?gradcam=' + (S.showCam ? 'true' : 'false')
+      + '&name=' + encodeURIComponent(name) + '&gate_mode=' + encodeURIComponent(mode)
+      + '&persist=false';   // 换档位重算只是同一文件的再判断, 不重复落库
+    const r = await fetch(url, { method: 'POST' });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const j = await r.json();
+    applyResult(j, name);
+    toast('已按「' + mode + '」档重新分析 ' + name, 'ok');
+  } catch (e) {
+    toast('门控分析失败: ' + e.message, 'err');
+  } finally {
+    loading(false);
+    srSyncAI();
+  }
+}
+
+const SR_GATE_TEXT = {
+  none: '两道门均未触发：认知不确定度与决策边际都在阈值内，模型直接给出结论。',
+  uncertainty: '门 1 · 认知不确定度超阈：MC-Dropout 多次采样仍不一致，回答不稳定，按选择性预测策略拒识。',
+  margin: '门 2 · 决策边际不足：异常概率贴近 0.5，等价于掷硬币，按选择性预测策略拒识。',
+  quality: '门 0 · 采集质量未过：六维质控不达标，样本不进入分类环节。',
+  no_model: '分类模型权重未载入，无法给出判定。'
+};
+const SR_GATE_LABEL = {
+  none: '未命中', uncertainty: '不确定度门', margin: '边际门',
+  quality: '质控门', no_model: '无模型'
+};
+
+function srSyncAI() {
+  const cur = S.current, p = cur && cur.prediction;
+  const banner = $('aiBanner');
+  const hitEl = $('gateHitText');
+  if (!banner || !hitEl) return;
+  if (!p) {
+    banner.classList.remove('pending', 'normal');
+    hitEl.textContent = '尚未分析。';
+    srDrawRuler($('uncRulerCanvas'), null, null);
+    return;
+  }
+  const pending = p.verdict_key === 'pending';
+  banner.classList.toggle('pending', pending);
+  banner.classList.toggle('normal', p.verdict_key === 'normal');
+
+  const g = SR.gate && SR.gate.current ? SR.gate.current : {};
+  const thr = (p.abstain_threshold != null ? p.abstain_threshold : g.uncertainty_threshold);
+  const mthr = (p.margin_threshold != null ? p.margin_threshold : g.margin_threshold);
+  const mode = p.gate_mode || SR.gateMode;
+  const key = p.gate_hit || 'none';
+  hitEl.innerHTML = '<b style="color:var(--text-primary);">本次命中：</b>'
+    + '<span class="tag ' + (key === 'none' ? 'tag-emerald' : 'tag-amber') + '" style="margin-right:8px;">'
+      + esc(SR_GATE_LABEL[key] || key) + '</span>'
+    + esc(SR_GATE_TEXT[key] || '未知门控状态。')
+    + (pending ? ' <b style="color:var(--accent-amber);">→ 建议人工复核，不自动给出正常/异常结论。</b>' : '');
+  $('gateNowTag').textContent = '档位 ' + mode + ' · 不确定度阈值 ' + fmt(thr, 4) + ' · 边际阈值 ' + fmt(mthr, 3);
+  $('gateNowTag').className = 'tag ' + (pending ? 'tag-amber' : 'tag-emerald');
+  srDrawRuler($('uncRulerCanvas'), p.uncertainty, thr);
+  const cmpTargetEl = $('cmpTarget');
+  if (cmpTargetEl) cmpTargetEl.textContent = '目标样本 ' + (S.currentSample || cur.filename || '—');
+}
+
+/* 认知不确定度刻度条: 横轴 0 → 0.45, 标出当前值与阈值竖线 */
+function srDrawRuler(cv, unc, thr) {
+  if (!cv) return;
+  const g = srCanvas(cv, 72);
+  const ctx = g.ctx, w = g.w, h = g.h;
+  const dark = isDark();
+  ctx.fillStyle = dark ? '#172234' : '#f8fafd'; ctx.fillRect(0, 0, w, h);
+  const padL = 34, padR = 22, padT = 20, padB = 22;
+  const iw = w - padL - padR, ih = h - padT - padB;
+  const MAX = 0.45;
+  const X = v => padL + Math.max(0, Math.min(MAX, v)) / MAX * iw;
+  const midY = padT + ih / 2;
+
+  /* 轨道 */
+  ctx.strokeStyle = dark ? 'rgba(255,255,255,.14)' : 'rgba(15,23,42,.12)';
+  ctx.lineWidth = 6; ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.moveTo(padL, midY); ctx.lineTo(padL + iw, midY); ctx.stroke();
+
+  /* 当前值 */
+  if (unc != null) {
+    ctx.strokeStyle = srCss('--accent-amber');
+    ctx.lineWidth = 6;
+    ctx.beginPath(); ctx.moveTo(padL, midY); ctx.lineTo(X(unc), midY); ctx.stroke();
+    ctx.beginPath(); ctx.arc(X(unc), midY, 5, 0, Math.PI * 2);
+    ctx.fillStyle = srCss('--accent-amber'); ctx.fill();
+  }
+  /* 阈值竖线 */
+  if (thr != null) {
+    ctx.strokeStyle = srCss('--accent-rose'); ctx.lineWidth = 1.6;
+    ctx.setLineDash([4, 3]);
+    ctx.beginPath(); ctx.moveTo(X(thr), padT - 4); ctx.lineTo(X(thr), padT + ih + 4); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = srCss('--accent-rose'); ctx.font = 'bold 9.5px monospace';
+    ctx.textAlign = X(thr) > padL + iw * 0.72 ? 'right' : 'left';
+    ctx.fillText('阈值 ' + fmt(thr, 4), X(thr) + (X(thr) > padL + iw * 0.72 ? -6 : 6), padT - 7);
+  }
+  /* 刻度 */
+  ctx.fillStyle = dark ? '#94a3b8' : '#94a3b8'; ctx.font = '9.5px monospace'; ctx.textAlign = 'center';
+  [0, 0.15, 0.30, 0.45].forEach(t => ctx.fillText(t.toFixed(2), X(t), h - 6));
+  if (unc != null) {
+    ctx.fillStyle = srCss('--accent-amber'); ctx.font = 'bold 10px monospace';
+    ctx.textAlign = X(unc) > padL + iw * 0.7 ? 'right' : 'left';
+    ctx.fillText('当前 ' + fmt(unc, 4), X(unc) + (X(unc) > padL + iw * 0.7 ? -8 : 8), midY + 15);
+  }
+}
+
+/* ----------------------------------------------------------- C2 · 模型对比 */
+async function srCompare() {
+  const name = S.currentSample || (S.samples[0] && S.samples[0].name);
+  if (!name) { toast('暂无当前样本，无法对比', 'err'); return; }
+  loading(true);
+  try {
+    const r = await fetch(API + '/api/compare_sample?name=' + encodeURIComponent(name), { method: 'POST' });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    SR.cmp = await r.json();
+    srRenderCompare();
+    toast('四模型对比完成: ' + name, 'ok');
+  } catch (e) {
+    toast('模型对比失败: ' + e.message, 'err');
+  } finally { loading(false); }
+}
+
+function srRenderCompare() {
+  const c = SR.cmp, body = $('cmpBody'); if (!body) return;
+  if (!c || !c.models) {
+    body.innerHTML = '<tr><td colspan="7" style="color:var(--text-muted);">尚未对比。</td></tr>';
+    return;
+  }
+  $('cmpAgree').textContent = c.all_agree ? '四模型一致' : '模型分歧';
+  $('cmpAgree').className = 'tag ' + (c.all_agree ? 'tag-emerald' : 'tag-amber');
+  $('cmpTarget').textContent = '目标样本 ' + (c.filename || '—') + ' · ' + fmt(c.duration_sec, 2) + ' s';
+  const chip = (on) => '<span class="sr-chip ' + (on ? 'on' : '') + '"></span>';
+  body.innerHTML = c.models.map(m => {
+    const off = m.ready === false;
+    return '<tr' + (off ? ' style="opacity:.7;"' : '') + '>'
+      + '<td><div>' + esc(m.label || m.checkpoint) + '</div>'
+      + '<div style="font-family:var(--font-mono);font-size:10px;color:var(--text-muted);font-weight:400;">'
+      + esc(m.checkpoint || '') + ' · ' + esc(m.table || '—') + '</div></td>'
+      + '<td><span class="sr-chips">' + chip(m.use_cwt) + chip(m.use_cbam) + chip(m.use_mixstyle) + chip(m.use_grl) + '</span></td>'
+      + '<td class="mono">' + fmt(m.params_M, 3) + 'M</td>'
+      + '<td class="mono">' + (off ? '—' : pct(m.prob_abnormal)) + '</td>'
+      + '<td class="mono">' + (off ? '—' : fmt(m.uncertainty, 4)) + '</td>'
+      + '<td><span class="tag ' + (m.verdict_key === 'abnormal' ? 'tag-rose'
+          : m.verdict_key === 'normal' ? 'tag-emerald' : 'tag-amber') + '">' + esc(m.verdict || '—') + '</span></td>'
+      + '<td class="mono">' + esc(m.gate_hit || '—') + '</td>'
+      + '</tr>';
+  }).join('');
+  $('cmpNote').textContent = '结构开关依次为 CWT 双视图 / CBAM 注意力 / MixStyle / GRL（实心＝启用，缺省按关闭处理）。'
+    + (c.note || '');
+}
+
+/* ----------------------------------------------------------- D1 · 批量分析 */
+function srBatchPick() {
+  const inp = $('batchInput'), tagEl = $('batchPick');
+  if (!inp || !tagEl) return;
+  const n = (inp.files || []).length;
+  tagEl.textContent = n ? ('已选 ' + n + ' 个文件') : '未选择文件';
+  tagEl.className = 'tag ' + (n > 12 ? 'tag-rose' : n ? 'tag-cyan' : 'tag-gray');
+}
+
+async function srBatchRun() {
+  const inp = $('batchInput');
+  const files = Array.prototype.slice.call((inp && inp.files) || []);
+  if (!files.length) { toast('请先选择音频文件', 'err'); return; }
+  if (files.length > 12) { toast('一次最多 12 个文件，当前 ' + files.length + ' 个', 'err'); return; }
+  const fd = new FormData();
+  files.forEach(f => fd.append('files', f, f.name));
+  loading(true);
+  const t0 = performance.now();
+  try {
+    const r = await fetch(API + '/api/analyze_batch?gradcam=false', { method: 'POST', body: fd });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    SR.batch = await r.json();
+    srRenderBatch();
+    toast('批量分析完成: ' + (SR.batch.n_ok || 0) + ' 成功 / ' + (SR.batch.n_error || 0) + ' 失败', 'ok');
+  } catch (e) {
+    toast('批量分析失败: ' + e.message, 'err');
+  } finally {
+    loading(false);
+    SR.batchMs = Math.round(performance.now() - t0);
+  }
+}
+
+function srRenderBatch() {
+  const b = SR.batch, body = $('batchBody'); if (!body) return;
+  if (!b || !b.items) {
+    body.innerHTML = '<tr><td colspan="7" style="color:var(--text-muted);">尚未运行批量分析。</td></tr>';
+    return;
+  }
+  const sm = b.summary || {};
+  $('batchSummary').innerHTML =
+    '<span class="sr-sum-chip">总数 <b>' + (b.n_total != null ? b.n_total : '—') + '</b></span>'
+    + '<span class="sr-sum-chip">成功 <b>' + (b.n_ok != null ? b.n_ok : '—') + '</b></span>'
+    + '<span class="sr-sum-chip">失败 <b>' + (b.n_error != null ? b.n_error : '—') + '</b></span>'
+    + '<span class="sr-sum-chip">异常 <b>' + (sm.abnormal != null ? sm.abnormal : '—') + '</b></span>'
+    + '<span class="sr-sum-chip">正常 <b>' + (sm.normal != null ? sm.normal : '—') + '</b></span>'
+    + '<span class="sr-sum-chip">待复核 <b>' + (sm.pending != null ? sm.pending : '—') + '</b></span>'
+    + '<span class="sr-sum-chip">拒识率 <b>' + pct(sm.abstain_rate) + '</b></span>'
+    + '<span class="sr-sum-chip">耗时 <b>' + fmt(b.elapsed_sec, 2) + ' s</b></span>';
+
+  body.innerHTML = b.items.map(it => {
+    const ok = it.quality_passed === true;
+    return '<tr' + (it.verdict_key === 'pending' ? ' class="sr-tr-pending"' : '') + '>'
+      + '<td>' + esc(it.filename || '—') + '</td>'
+      + '<td class="mono">' + fmt(it.duration_sec, 2) + '</td>'
+      + '<td>' + (it.quality_passed == null ? '—'
+          : '<span class="tag ' + (ok ? 'tag-emerald' : 'tag-rose') + '">' + (ok ? '通过' : '未通过') + '</span>') + '</td>'
+      + '<td class="mono">' + pct(it.prob_abnormal) + '</td>'
+      + '<td class="mono">' + fmt(it.uncertainty, 4) + '</td>'
+      + '<td><span class="tag ' + (it.verdict_key === 'abnormal' ? 'tag-rose'
+          : it.verdict_key === 'normal' ? 'tag-emerald' : 'tag-amber') + '">' + esc(it.verdict || '—') + '</span></td>'
+      + '<td class="mono">' + esc(it.gate_hit || '—') + '</td>'
+      + '</tr>';
+  }).join('');
+
+  const errs = b.errors || [];
+  $('batchNote').textContent = (b.note || '')
+    + (errs.length ? (' 失败明细: ' + errs.map(e => (e.filename || '?') + ' → ' + (e.error || e.detail || '')).join('；')) : '');
+}
+
+/* ----------------------------------------------------------- E · 复核与历史 */
+async function srLoadReview() {
+  try { SR.stats = await apiGet('/api/stats'); } catch (e) { SR.stats = null; }
+  try { SR.queue = await apiGet('/api/review-queue?status=open'); } catch (e) { SR.queue = null; }
+  try { SR.history = await apiGet('/api/history?limit=50'); } catch (e) { SR.history = null; }
+  srRenderStats(); srRenderQueue(); srRenderHistory();
+}
+
+function srRenderStats() {
+  const s = SR.stats, g = $('statsKpi'); if (!g) return;
+  if (!s) {
+    g.innerHTML = '<div class="kpi"><div class="k-val">—</div><div class="k-lab">统计不可用</div></div>';
+    $('statsTag').textContent = 'TBD'; $('statsTag').className = 'tag tag-gray';
+    return;
+  }
+  const bv = s.by_verdict || {};
+  const items = [
+    { v: s.total_analyses != null ? s.total_analyses : '—', l: '总分析数' },
+    { v: s.open_reviews != null ? s.open_reviews : '—', l: '待复核数' },
+    { v: pct(s.abstain_rate), l: '拒识率' },
+    { v: fmt(s.mean_uncertainty, 4), l: '平均不确定度' },
+    { v: (bv.abnormal != null ? bv.abnormal : '—'), l: '异常判定' },
+    { v: (bv.normal != null ? bv.normal : '—'), l: '正常判定' },
+    { v: (bv.pending != null ? bv.pending : '—'), l: '待复核判定' }
+  ];
+  g.innerHTML = items.map(i =>
+    '<div class="kpi"><div class="k-val">' + esc(i.v) + '</div><div class="k-lab">' + esc(i.l) + '</div></div>'
+  ).join('');
+  $('statsTag').textContent = '实时';
+  $('statsTag').className = 'tag tag-emerald';
+}
+
+function srRenderQueue() {
+  const q = SR.queue, body = $('rqBody'); if (!body) return;
+  if (!q || !q.items) {
+    body.innerHTML = '<tr><td colspan="6" style="color:var(--text-muted);">复核队列不可用 (TBD)</td></tr>';
+    $('rqCount').textContent = 'TBD'; $('rqCount').className = 'tag tag-gray';
+    return;
+  }
+  $('rqCount').textContent = '待复核 ' + (q.total != null ? q.total : q.items.length) + ' 条';
+  $('rqCount').className = 'tag ' + (q.items.length ? 'tag-amber' : 'tag-emerald');
+  if (!q.items.length) {
+    body.innerHTML = '<tr><td colspan="6" style="color:var(--text-muted);">当前没有待复核条目。</td></tr>';
+    $('rqNote').textContent = '';
+    return;
+  }
+  body.innerHTML = q.items.map(it =>
+    '<tr>'
+    + '<td><div>' + esc(it.filename || '—') + '</div>'
+    + '<div style="font-family:var(--font-mono);font-size:10px;color:var(--text-muted);font-weight:400;">'
+    + 'queue #' + (it.id != null ? it.id : '—') + ' · analysis #' + (it.analysis_id != null ? it.analysis_id : '—') + '</div></td>'
+    + '<td class="mono">' + pct(it.prob_abnormal) + '</td>'
+    + '<td class="mono">' + fmt(it.uncertainty, 4) + '</td>'
+    + '<td><span class="tag ' + (it.verdict_key === 'abnormal' ? 'tag-rose'
+        : it.verdict_key === 'normal' ? 'tag-emerald' : 'tag-amber') + '">' + esc(it.verdict_label || '—') + '</span></td>'
+    + '<td class="mono" style="font-size:11px;">' + esc(it.created_at || '—') + '</td>'
+    + '<td><div class="sr-btn-row">'
+    + '<button class="uiverse-btn uiverse-btn-sm sr-btn-xs" onclick="srResolve(' + Number(it.id) + ',\'confirmed\')">确认异常</button>'
+    + '<button class="uiverse-btn uiverse-btn-sm sr-btn-xs" onclick="srResolve(' + Number(it.id) + ',\'rejected\')">否认为正常</button>'
+    + '<button class="uiverse-btn uiverse-btn-sm sr-btn-xs uiverse-btn-rose" onclick="srResolve(' + Number(it.id) + ',\'escalated\')">升级处理</button>'
+    + '</div></td>'
+    + '</tr>'
+  ).join('');
+  $('rqNote').textContent = '提交后以 JSON body 调用 POST /api/review-queue/{id}（status=confirmed|rejected|escalated, reviewer=web），'
+    + '成功后自动刷新统计条与队列。';
+}
+
+async function srResolve(id, status) {
+  loading(true);
+  try {
+    const r = await fetch(API + '/api/review-queue/' + id, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: status, reviewer: 'web', note: '' })
+    });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const j = await r.json();
+    toast('复核已提交: #' + id + ' → ' + status, 'ok');
+    await srLoadReview();
+    if (SR.histId != null) srHistDetail(SR.histId);
+    return j;
+  } catch (e) {
+    toast('复核提交失败: ' + e.message, 'err');
+  } finally { loading(false); }
+}
+
+function srRenderHistory() {
+  const h = SR.history, body = $('histBody'); if (!body) return;
+  const items = h && h.items ? h.items : (Array.isArray(h) ? h : null);
+  if (!items) {
+    body.innerHTML = '<tr><td colspan="7" style="color:var(--text-muted);">历史记录不可用 (TBD)</td></tr>';
+    return;
+  }
+  if (!items.length) {
+    body.innerHTML = '<tr><td colspan="7" style="color:var(--text-muted);">暂无历史记录。</td></tr>';
+    return;
+  }
+  body.innerHTML = items.map(it =>
+    '<tr class="sr-hist-row" onclick="srHistDetail(' + Number(it.id) + ')">'
+    + '<td class="mono">' + (it.id != null ? it.id : '—') + '</td>'
+    + '<td class="mono" style="font-size:11px;">' + esc(it.created_at || '—') + '</td>'
+    + '<td>' + esc(it.filename || '—') + '</td>'
+    + '<td><span class="tag ' + (it.verdict_key === 'abnormal' ? 'tag-rose'
+        : it.verdict_key === 'normal' ? 'tag-emerald' : 'tag-amber') + '">' + esc(it.verdict_label || it.verdict_key || '—') + '</span></td>'
+    + '<td class="mono">' + pct(it.prob_abnormal) + '</td>'
+    + '<td class="mono">' + fmt(it.uncertainty, 4) + '</td>'
+    + '<td class="mono">' + (it.quality_pass == null ? '—'
+        : '<span style="color:' + (it.quality_pass ? 'var(--accent-emerald)' : 'var(--accent-rose)') + ';">'
+          + (it.quality_pass ? 'PASS' : 'FAIL') + '</span>') + '</td>'
+    + '</tr>'
+  ).join('');
+}
+
+async function srHistDetail(id) {
+  SR.histId = id;
+  const box = $('histDetail'); if (!box) return;
+  box.innerHTML = '<div class="sr-detail">正在载入 #' + id + ' 的完整 payload…</div>';
+  try {
+    const d = await apiGet('/api/history/' + id);
+    const pl = d.payload || {};
+    const q = pl.quality || {}, f = q.features || {};
+    const p = pl.prediction || {};
+    const names = {
+      duration_sec: '录音时长 (s)', rms_energy: '均方根能量', silence_ratio: '静音帧比例',
+      clipping_ratio: '峰值削波比例', snr_proxy_db: '频带信噪比 (dB)', stability_cv: '能量稳定系数 CV'
+    };
+    const dims = Object.keys(names).map(k =>
+      '<div class="dim-row"><span>' + names[k] + '</span>'
+      + '<span class="mono" style="color:var(--text-primary);font-weight:600;">'
+      + (f[k] != null ? f[k] : '—') + '</span></div>'
+    ).join('');
+    box.innerHTML =
+      '<div class="sr-detail">'
+      + '<div class="section-head" style="margin-bottom:8px;">'
+      + '<div class="section-title"><span>分析 #' + (d.id != null ? d.id : id) + ' · ' + esc(d.filename || '—') + '</span></div>'
+      + '<button class="uiverse-btn uiverse-btn-sm sr-btn-xs" onclick="srHistHidden()">收起</button></div>'
+      + '<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;">'
+      + '<span class="sr-sum-chip">时间 <b>' + esc(d.created_at || '—') + '</b></span>'
+      + '<span class="sr-sum-chip">判定 <b>' + esc(d.verdict_label || d.verdict_key || '—') + '</b></span>'
+      + '<span class="sr-sum-chip">异常概率 <b>' + pct(d.prob_abnormal) + '</b></span>'
+      + '<span class="sr-sum-chip">不确定度 <b>' + fmt(d.uncertainty, 4) + '</b></span>'
+      + '<span class="sr-sum-chip">拒识阈值 <b>' + fmt(d.abstain_thr != null ? d.abstain_thr : p.abstain_threshold, 4) + '</b></span>'
+      + '<span class="sr-sum-chip">命中门 <b>' + esc(p.gate_hit || '—') + '</b></span>'
+      + '<span class="sr-sum-chip">复核 <b>' + (d.has_review ? '已处理 (' + (d.review_count != null ? d.review_count : '—') + ')' : '未处理') + '</b></span>'
+      + '</div>'
+      + '<div style="font-weight:700;color:var(--text-primary);margin:6px 0 2px;">六维采集质量</div>'
+      + dims
+      + '<div style="font-weight:700;color:var(--text-primary);margin:10px 0 2px;">判定说明 (explanation)</div>'
+      + '<div style="line-height:1.8;">' + esc(p.explanation || '—') + '</div>'
+      + '</div>';
+  } catch (e) {
+    box.innerHTML = '<div class="sr-detail" style="color:var(--accent-rose);">载入失败: ' + esc(e.message) + '</div>';
+  }
+}
+function srHistHidden() { const b = $('histDetail'); if (b) b.innerHTML = ''; SR.histId = null; }
+
+/* ----------------------------------------------------------- 页面联动 */
+function srOnPage(id) {
+  if (id === 'research') {
+    if (!SR.ablation) srLoadAblation(); else { srRenderAblation(); srRenderSelective(); srRenderCalibration(); srRenderDomain(); srRenderAudit(); }
+  } else if (id === 'ai') {
+    srSyncAI();
+  } else if (id === 'review') {
+    srLoadReview();
+  }
+}
+
+const SR_ORIG_SWITCH = switchPage;
+switchPage = function (pageId) {
+  SR_ORIG_SWITCH.apply(this, arguments);
+  try { srOnPage(pageId); } catch (e) { /* 追加模块失败不影响既有页面 */ }
+};
+
+const SR_ORIG_RENDER_AI = renderAI;
+renderAI = function () {
+  SR_ORIG_RENDER_AI.apply(this, arguments);
+  try { srSyncAI(); } catch (e) { /* 同上 */ }
+};
+
+/* ----------------------------------------------------------- 初始化 */
+(function srInit() {
+  const bi = $('batchInput');
+  if (bi) bi.addEventListener('change', srBatchPick);
+  srLoadGate();
+  srLoadAblation();
+  srLoadSelective();
+  srLoadAudit();
+  srRenderBatch();
+  srRenderCompare();
+  srRenderQueue(); srRenderHistory();
+  window.addEventListener('resize', function () {
+    if ($('page-research') && $('page-research').classList.contains('active')) {
+      srRenderSelective(); srRenderCalibration();
+    }
+    if ($('page-ai') && $('page-ai').classList.contains('active')) srSyncAI();
+  });
+  /* 深链接 #review（原有 switchPage 白名单未包含 review, 这里追加处理） */
+  const goReview = function () {
+    if ((location.hash || '').replace('#', '') === 'review') { switchPage('review'); }
+  };
+  window.addEventListener('hashchange', goReview);
+  setTimeout(goReview, 400);
+  setTimeout(goReview, 1600);
+})();
 </script>
 </body>
 </html>

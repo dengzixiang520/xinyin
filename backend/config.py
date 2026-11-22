@@ -57,8 +57,57 @@ CLS_WEIGHT = os.path.join(WEIGHTS_DIR, "cls_best.pt")
 SEG_WEIGHT = os.path.join(WEIGHTS_DIR, "seg_unet.pt")
 SQA_WEIGHT = os.path.join(WEIGHTS_DIR, "sqa_rf_model.pkl")
 
+# ---------------------------------------------------------------- 多模型对比池
+# 「同一片段跑多个检查点」用的注册表。文件缺失的项在前端自动隐藏, 不会报错。
+# 每一项都对应论文里一个真实训练产物, 不是临时训练的对照模型。
+COMPARE_CHECKPOINTS = {
+    "proposed": {
+        "path": CLS_WEIGHT,
+        "label": "Proposed Full",
+        "desc": "双视图 + CBAM + MixStyle + GRL（论文主模型）",
+        "table": "Table3",
+    },
+    "naive": {
+        "path": os.path.join(WEIGHTS_DIR, "cls_naive.pt"),
+        "label": "普通混训 CNN",
+        "desc": "同样四库混训，去掉全部域泛化机制（0.2M 参数）",
+        "table": "Table3",
+    },
+    "lodo": {
+        "path": os.path.join(WEIGHTS_DIR, "cls_lodo.pt"),
+        "label": "LODO 域泛化",
+        "desc": "PhysioNet 留一子库训练的域泛化版本",
+        "table": "Table2",
+    },
+    "nocwt": {
+        "path": os.path.join(WEIGHTS_DIR, "cls_nocwt.pt"),
+        "label": "去 CWT 双视图",
+        "desc": "消融：仅 Log-Mel 单视图",
+        "table": "Table4",
+    },
+}
+DEFAULT_CHECKPOINT = "proposed"
+
+# ---------------------------------------------------------------- 拒识门控
+# 阈值不写死: 运行时由 selective.py 在论文真实外测集上反解 (见 backend/selective.py)。
+# 这里的值仅在标定数据缺失时作兜底。
+ABSTAIN_DEFAULT = {"uncertainty_threshold": 0.35, "margin_threshold": 0.10}
+
 APP_TITLE = "声见其迹 SONOTRACE"
-APP_VERSION = "3.0"
+APP_VERSION = "3.1"
+
+
+def checkpoint_status() -> dict:
+    """对比池里每个检查点的落盘状态。"""
+    out = {}
+    for key, spec in COMPARE_CHECKPOINTS.items():
+        p = spec["path"]
+        ok = os.path.exists(p)
+        out[key] = {"label": spec["label"], "desc": spec["desc"],
+                    "table": spec["table"], "file": os.path.basename(p),
+                    "available": ok,
+                    "mb": round(os.path.getsize(p) / 1048576, 2) if ok else 0.0}
+    return out
 
 
 def weights_status() -> dict:

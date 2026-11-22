@@ -1,4 +1,4 @@
-﻿# ===== 不进版本库 =====
+# ===== 不进版本库 =====
 # 训练权重 (近百 MB, 且派生自受控访问数据) —— 用 tools/sync_results.py 获取
 weights/*.pt
 weights/*.pth
@@ -11,9 +11,33 @@ samples/*.flac
 samples/*.mp3
 samples/*.ogg
 
+# 行级预测记录 (record_uid + 标签 + 逐条概率) —— 由医院受控数据派生,
+# 内含每条记录的编号与临床标签, 不适合公开发布。
+# 用 `python tools/sync_results.py --only-predictions` 从训练服务器获取。
+results/predictions/
+
 # 前端构建中间产物与截图
 frontend/_part_*.html
 *.png
+# 但论文图表要进库 (评审可直接看到, 不用先跑训练)
+!results/figures/*.png
+
+# 本地运行产生的分析记录/复核队列 (SQLite, 每台机器各自一份, 不入库)
+data/
+*.db
+*.db-wal
+*.db-shm
+
+# 开发期临时脚本与日志 (不属于交付物)
+_*.py
+_*.js
+_*.json
+_*.log
+_*.err
+_*.tar
+_api_samples/
+_api_pretty/
+frontend/index.html.bak
 
 # Python
 __pycache__/

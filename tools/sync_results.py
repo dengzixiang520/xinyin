@@ -13,14 +13,22 @@
     SONOTRACE_REMOTE_ROOT 可选, 默认 /home/linux/sonotrace
 
 用法:
-    python tools/sync_results.py              # 全量同步 (指标 + 权重 + 图)
+    python tools/sync_results.py              # 全量同步 (指标 + 权重 + 图 + 预测)
     python tools/sync_results.py --only-metrics
     python tools/sync_results.py --only-weights
+    python tools/sync_results.py --only-predictions
+    python tools/sync_results.py --only-checkpoints
     python tools/sync_results.py --dry-run
+
+关于 `results/predictions/`: 这些是**行级**预测 (record_uid + 标签 + 逐条概率),
+由医院受控数据派生, 不进版本库, 必须由本工具从训练服务器拉取。
+风险-覆盖率 / 校准 / 跨域分解三个页面依赖它; 拉不到时后端返回 available=false,
+前端显示 TBD, 不会伪造曲线。
 """
 from __future__ import annotations
 
 import argparse
+import json
 import os
 import posixpath
 import sys
@@ -36,6 +44,7 @@ RESULTS = os.path.join(LOCAL_ROOT, "results")
 EXPDIR = os.path.join(RESULTS, "experiments")
 WEIGHTS = os.path.join(LOCAL_ROOT, "weights")
 FIGDIR = os.path.join(RESULTS, "figures")
+PREDDIR = os.path.join(RESULTS, "predictions")
 
 # 远端 -> 本地 的固定映射
 SINGLE_FILES = [
@@ -57,11 +66,19 @@ CLS_CANDIDATES = [
     "paper/outputs/lodo_proposed_dg/cls_best.pt",
 ]
 
+# 「多模型对比」页用的对比检查点 (都对应论文里的真实实验)
+EXTRA_WEIGHTS = [
+    ("paper/outputs/cross_naive_pool_cnn/cls_best.pt", "weights/cls_naive.pt"),
+    ("paper/outputs/lodo_proposed_dg/cls_best.pt",     "weights/cls_lodo.pt"),
+    ("paper/outputs/abl_no_cwt/cls_best.pt",           "weights/cls_nocwt.pt"),
+]
+
 # 论文图
 FIGURE_FILES = [
-    ("paper/outputs/figures/fig2_tsne_shortcut.png", "results/figures/fig2_tsne_shortcut.png"),
-    ("paper/outputs/figures/fig3_risk_coverage.png", "results/figures/fig3_risk_coverage.png"),
-    ("paper/outputs/figures/fig5_cm_roc.png",        "results/figures/fig5_cm_roc.png"),
+    ("paper/outputs/figures/fig2_tsne_shortcut.png",  "results/figures/fig2_tsne_shortcut.png"),
+    ("paper/outputs/figures/fig3_risk_coverage.png",  "results/figures/fig3_risk_coverage.png"),
+    ("paper/outputs/figures/fig4_gradcam_case.png",   "results/figures/fig4_gradcam_case.png"),
+    ("paper/outputs/figures/fig5_cm_roc.png",         "results/figures/fig5_cm_roc.png"),
 ]
 
 
@@ -111,6 +128,41 @@ def fetch(sftp, remote, local, dry, tag=""):
         return False
 
 
+def write_domain_map() -> bool:
+    """从主模型权重里读出 domain_to_idx, 落盘成 results/domain_map.json。
+
+    `/api/selective` 的跨域分解需要 domain_idx -> 域名的映射。原先要手工生成,
+    这里做成同步的最后一步, 保证全新克隆 + 一次同步即可完整运行。
+    """
+    ck = os.path.join(WEIGHTS, "cls_best.pt")
+    if not os.path.exists(ck):
+        print("  [skip] 无 weights/cls_best.pt, 无法生成 domain_map.json")
+        return False
+    try:
+        import torch
+        try:
+            state = torch.load(ck, map_location="cpu", weights_only=False)
+        except TypeError:
+            state = torch.load(ck, map_location="cpu")
+        d2i = state.get("domain_to_idx") or {}
+        if not d2i:
+            print("  [skip] 权重里没有 domain_to_idx")
+            return False
+        out = {"domain_to_idx": d2i,
+               "idx_to_domain": {str(v): k for k, v in d2i.items()},
+               "source": "weights/cls_best.pt::domain_to_idx",
+               "n_domains": len(d2i)}
+        dst = os.path.join(RESULTS, "domain_map.json")
+        os.makedirs(RESULTS, exist_ok=True)
+        with open(dst, "w", encoding="utf-8") as f:
+            json.dump(out, f, ensure_ascii=False, indent=2)
+        print("  OK   results/domain_map.json (%d 个设备域)" % len(d2i))
+        return True
+    except Exception as ex:                                      # noqa: BLE001
+        print("  [warn] 生成 domain_map.json 失败: %s: %s" % (type(ex).__name__, ex))
+        return False
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--host", default=os.environ.get("SONOTRACE_SSH_HOST"))
@@ -121,6 +173,8 @@ def main():
     ap.add_argument("--remote-root", default=os.environ.get("SONOTRACE_REMOTE_ROOT", "/home/linux/sonotrace"))
     ap.add_argument("--only-metrics", action="store_true")
     ap.add_argument("--only-weights", action="store_true")
+    ap.add_argument("--only-predictions", action="store_true")
+    ap.add_argument("--only-checkpoints", action="store_true")
     ap.add_argument("--dry-run", action="store_true")
     args = ap.parse_args()
 
@@ -133,17 +187,23 @@ def main():
     sftp = c.open_sftp()
     R = args.remote_root
 
-    do_metrics = not args.only_weights
-    do_weights = not args.only_metrics
+    selective = (args.only_metrics or args.only_weights
+                 or args.only_predictions or args.only_checkpoints)
+    do_metrics = args.only_metrics or not selective
+    do_weights = args.only_weights or not selective
+    do_pred = args.only_predictions or not selective
+    do_cks = args.only_checkpoints or not selective
 
     print("远端根目录: %s" % R)
-    print("模式: %s%s%s" % (
+    print("模式: %s%s%s%s%s" % (
         "dry-run " if args.dry_run else "",
         "metrics " if do_metrics else "",
-        "weights " if do_weights else ""))
+        "weights " if do_weights else "",
+        "predictions " if do_pred else "",
+        "checkpoints " if do_cks else ""))
 
     if do_metrics:
-        print("\n[1/3] 固定产物 + 每个实验的 metrics.json")
+        print("\n[1/5] 固定产物 + 每个实验的 metrics.json")
         for rel, loc in SINGLE_FILES:
             if not do_weights and loc.startswith("weights/"):
                 continue
@@ -160,12 +220,12 @@ def main():
                 n_ok += 1
         print("  已完成实验指标: %d / %d" % (n_ok, len(exps)))
 
-        print("\n[2/3] 论文图")
+        print("\n[2/5] 论文图")
         for rel, loc in FIGURE_FILES:
             fetch(sftp, posixpath.join(R, rel), os.path.join(LOCAL_ROOT, loc), args.dry_run, loc)
 
     if do_weights:
-        print("\n[3/3] 分类主模型权重 (训练完成后才存在)")
+        print("\n[3/5] 分类主模型权重 (训练完成后才存在)")
         got = False
         for i, rel in enumerate(CLS_CANDIDATES):
             if fetch(sftp, posixpath.join(R, rel), os.path.join(WEIGHTS, "cls_best.pt"),
@@ -174,6 +234,28 @@ def main():
                 break
         if not got:
             print("  (cls_best.pt 尚未生成 —— 等 cross_proposed_full 跑完再来同步)")
+
+    if do_cks:
+        print("\n[4/5] 多模型对比检查点")
+        for rel, loc in EXTRA_WEIGHTS:
+            fetch(sftp, posixpath.join(R, rel), os.path.join(LOCAL_ROOT, loc),
+                  args.dry_run, loc)
+
+    if do_pred:
+        print("\n[5/5] 行级预测 (风险-覆盖率 / 校准 / 跨域分解所需)")
+        out_root = posixpath.join(R, METRIC_GLOB_DIR)
+        exps = sorted(x for x in remote_list(sftp, out_root) if x not in ("sqa", "seg_unet", "figures"))
+        n_ok = 0
+        for e in exps:
+            rp = posixpath.join(out_root, e, "predictions.csv")
+            lp = os.path.join(PREDDIR, e + ".csv")
+            if fetch(sftp, rp, lp, args.dry_run, "results/predictions/%s.csv" % e):
+                n_ok += 1
+        print("  预测文件: %d / %d" % (n_ok, len(exps)))
+
+    if not args.dry_run and (do_weights or do_cks):
+        print("\n[+] 由主模型权重反解设备域映射")
+        write_domain_map()
 
     sftp.close()
     c.close()

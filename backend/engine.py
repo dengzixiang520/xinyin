@@ -15,6 +15,7 @@
 """
 from __future__ import annotations
 
+import os
 import pickle
 import threading
 import warnings
@@ -46,6 +47,9 @@ from .models.seg_unet import PCGUNet1D, viterbi_cardiac_decode, extract_event_ce
 _DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 _LOCK = threading.Lock()
 
+# MC-Dropout 采样种子: 固定以保证「同一条录音 → 同一个结论」可复现
+_MC_SEED = 20241122
+
 
 def _safe_torch_load(path: str, map_location="cpu"):
     """兼容 torch>=2.6 的 weights_only 默认翻转 (论文 ckpt 存了 argparse 字典)。"""
@@ -56,34 +60,32 @@ def _safe_torch_load(path: str, map_location="cpu"):
 
 
 class ModelRegistry:
-    """三项权重的惰性单例注册表。"""
+    """分割/SQA 单例 + 分类检查点池 (多模型对比按需惰性加载)。"""
 
     def __init__(self):
-        self.cls_model = None
-        self.cls_meta: dict = {}
-        self.cls_error: Optional[str] = None
-
+        self._cls_pool: dict[str, dict] = {}      # name -> {tried, model, meta, error}
         self.seg_model = None
         self.seg_error: Optional[str] = None
-
         self.sqa_bundle = None
         self.sqa_error: Optional[str] = None
+        self._tried = {"seg": False, "sqa": False}
 
-        self._tried = {"cls": False, "seg": False, "sqa": False}
-
-    # ------------------------------------------------------------ 分类
-    def ensure_cls(self):
-        if self._tried["cls"]:
-            return self.cls_model
-        self._tried["cls"] = True
-        if not C.os.path.exists(C.CLS_WEIGHT):
-            self.cls_error = "未找到 cls_best.pt"
-            return None
+    # ------------------------------------------------------------ 分类检查点池
+    def _build_cls(self, name: str) -> dict:
+        """按 checkpoint 自带的 args 重建网络结构 (消融变体也能正确加载)。"""
+        spec = C.COMPARE_CHECKPOINTS.get(name)
+        if spec is None:
+            return {"tried": True, "model": None, "meta": {},
+                    "error": f"未注册的检查点: {name}"}
+        path = spec["path"]
+        if not os.path.exists(path):
+            return {"tried": True, "model": None, "meta": {},
+                    "error": f"未找到 {os.path.basename(path)}"}
         try:
-            ckpt = _safe_torch_load(C.CLS_WEIGHT, map_location="cpu")
-            a = ckpt.get("args", {})
+            ckpt = _safe_torch_load(path, map_location="cpu")
+            a = ckpt.get("args", {}) or {}
             model_name = a.get("model", "dg_resnet_cbam")
-            domain_to_idx = ckpt.get("domain_to_idx", {})
+            domain_to_idx = ckpt.get("domain_to_idx", {}) or {}
             use_cwt = (not a.get("no_cwt", False)) and (model_name == "dg_resnet_cbam")
             kwargs = {}
             if model_name == "dg_resnet_cbam":
@@ -95,9 +97,10 @@ class ModelRegistry:
                                 num_domains=max(1, len(domain_to_idx)), **kwargs)
             model.load_state_dict(ckpt["model_state"], strict=False)
             model.to(_DEVICE).eval()
-            self.cls_model = model
-            self.cls_meta = {
+            meta = {
                 "model": model_name,
+                "checkpoint": name,
+                "label": spec["label"],
                 "use_cwt": bool(use_cwt),
                 "use_cbam": bool(kwargs.get("use_cbam", False)),
                 "use_mixstyle": bool(kwargs.get("use_mixstyle", False)),
@@ -108,18 +111,68 @@ class ModelRegistry:
                 "params_M": round(sum(p.numel() for p in model.parameters()) / 1e6, 3),
                 "device": str(_DEVICE),
             }
-            return model
+            return {"tried": True, "model": model, "meta": meta, "error": None}
         except Exception as ex:                                   # noqa: BLE001
-            self.cls_error = f"{type(ex).__name__}: {ex}"
-            self.cls_model = None
-            return None
+            return {"tried": True, "model": None, "meta": {},
+                    "error": f"{type(ex).__name__}: {ex}"}
+
+    def ensure_cls(self, name: Optional[str] = None):
+        name = name or C.DEFAULT_CHECKPOINT
+        ent = self._cls_pool.get(name)
+        if ent is None:
+            ent = self._build_cls(name)
+            self._cls_pool[name] = ent
+            if ent["error"]:
+                warnings.warn(f"[cls:{name}] {ent['error']}")
+        return ent["model"]
+
+    def cls_meta(self, name: Optional[str] = None) -> dict:
+        name = name or C.DEFAULT_CHECKPOINT
+        self.ensure_cls(name)
+        return self._cls_pool.get(name, {}).get("meta", {})
+
+    def cls_error(self, name: Optional[str] = None) -> Optional[str]:
+        name = name or C.DEFAULT_CHECKPOINT
+        self.ensure_cls(name)
+        return self._cls_pool.get(name, {}).get("error")
+
+    # 兼容旧调用点 (REGISTRY.cls_model / REGISTRY.cls_meta / REGISTRY.cls_error)
+    @property
+    def cls_model(self):
+        return self.ensure_cls()
+
+    def pool_report(self, load_all: bool = False) -> dict:
+        """检查点池状态。默认只真正加载主模型, 其余按文件存在性报告,
+        避免开服时把 4 个权重(ca. 300MB) 全塞进内存。"""
+        out = {}
+        for key, spec in C.COMPARE_CHECKPOINTS.items():
+            ent = self._cls_pool.get(key) or {}
+            exists = os.path.exists(spec["path"])
+            loaded = ent.get("model") is not None
+            if load_all and exists and not ent.get("tried"):
+                self.ensure_cls(key)
+                ent = self._cls_pool.get(key) or {}
+                loaded = ent.get("model") is not None
+            out[key] = {
+                "label": spec["label"], "desc": spec["desc"], "table": spec["table"],
+                "file": os.path.basename(spec["path"]),
+                "available": exists,
+                "loaded": loaded,
+                "ready": exists,                  # 可用即可被「模型对比」调用
+                "error": ent.get("error"),
+                **{k: v for k, v in (ent.get("meta") or {}).items()
+                   if k in ("model", "params_M", "exp_name", "protocol",
+                            "use_cwt", "use_cbam", "use_mixstyle", "use_grl",
+                            "num_domains")},
+            }
+        return out
 
     # ------------------------------------------------------------ 分割
     def ensure_seg(self):
         if self._tried["seg"]:
             return self.seg_model
         self._tried["seg"] = True
-        if not C.os.path.exists(C.SEG_WEIGHT):
+        if not os.path.exists(C.SEG_WEIGHT):
             self.seg_error = "未找到 seg_unet.pt"
             return None
         try:
@@ -143,7 +196,7 @@ class ModelRegistry:
         if self._tried["sqa"]:
             return self.sqa_bundle
         self._tried["sqa"] = True
-        if not C.os.path.exists(C.SQA_WEIGHT):
+        if not os.path.exists(C.SQA_WEIGHT):
             self.sqa_error = "未找到 sqa_rf_model.pkl"
             return None
         try:
@@ -158,13 +211,33 @@ class ModelRegistry:
     # ------------------------------------------------------------ 状态
     def status(self) -> dict:
         ws = C.weights_status()
-        self.ensure_cls(); self.ensure_seg(); self.ensure_sqa()
+        pool = self.pool_report(load_all=False)
+        self.ensure_cls()                  # 主模型真正加载一次, 保证 ready 是真值
+        self.ensure_seg(); self.ensure_sqa()
+        pool[C.DEFAULT_CHECKPOINT]["loaded"] = \
+            self._cls_pool.get(C.DEFAULT_CHECKPOINT, {}).get("model") is not None
+        pool[C.DEFAULT_CHECKPOINT]["ready"] = pool[C.DEFAULT_CHECKPOINT]["loaded"]
+        if self._cls_pool.get(C.DEFAULT_CHECKPOINT, {}).get("meta"):
+            pool[C.DEFAULT_CHECKPOINT].update(
+                {k: v for k, v in self._cls_pool[C.DEFAULT_CHECKPOINT]["meta"].items()
+                 if k in ("model", "params_M", "exp_name", "protocol", "use_cwt",
+                          "use_cbam", "use_mixstyle", "use_grl", "num_domains")})
+        default = pool.get(C.DEFAULT_CHECKPOINT, {})
+        engine_ok = bool(default.get("ready"))
         return {
             "weights": ws,
-            "cls": {"ready": self.cls_model is not None, "error": self.cls_error, **self.cls_meta},
+            "checkpoints": pool,
+            "default_checkpoint": C.DEFAULT_CHECKPOINT,
+            "n_available": sum(1 for v in pool.values() if v.get("available")),
+            # 兼容旧前端字段
+            "cls": {"ready": engine_ok, "error": default.get("error"),
+                    **{k: v for k, v in default.items()
+                       if k in ("model", "params_M", "exp_name", "protocol",
+                                "use_cwt", "use_cbam", "use_mixstyle", "use_grl",
+                                "num_domains", "device")}},
             "seg": {"ready": self.seg_model is not None, "error": self.seg_error},
             "sqa": {"ready": self.sqa_bundle is not None, "error": self.sqa_error},
-            "engine_mode": "real_pytorch_model" if self.cls_model is not None else "dsp_acoustic_fallback",
+            "engine_mode": "real_pytorch_model" if engine_ok else "dsp_acoustic_fallback",
             "device": str(_DEVICE),
         }
 
@@ -182,17 +255,19 @@ def _center_clip(y: np.ndarray, clip_len: int) -> np.ndarray:
     return np.tile(y, reps)[:clip_len]
 
 
-def extract_dualview(y: np.ndarray, use_cwt: Optional[bool] = None):
+def extract_dualview(y: np.ndarray, use_cwt: Optional[bool] = None,
+                     checkpoint: Optional[str] = None):
     """提取 Log-Mel + CWT 双视图 (纯 DSP, 不依赖模型权重)。
 
     即使 cls_best.pt 尚未就绪, 前端声像对照模块也需要 mel/cwt, 因此单独暴露。
+    去 CWT 的消融模型 (use_cwt=False) 会拿到全零的 cwt, 与训练时口径一致。
     """
     sr = C.AUDIO["target_sr"]
     clip = _center_clip(y, int(sr * C.AUDIO["cls_clip_sec"]))
     mel = extract_log_mel(clip, sr=sr, n_mels=C.AUDIO["n_mels"],
                           n_fft=C.AUDIO["n_fft"], hop_length=C.AUDIO["hop_length"])
     if use_cwt is None:
-        use_cwt = bool(REGISTRY.cls_meta.get("use_cwt", True))
+        use_cwt = bool(REGISTRY.cls_meta(checkpoint).get("use_cwt", True))
     if use_cwt:
         cwt = extract_cwt_scalogram(clip, sr=sr, n_scales=C.AUDIO["cwt_scales"],
                                     target_time_frames=mel.shape[1])
@@ -208,13 +283,18 @@ def _enable_mc_dropout(model):
 
 
 @torch.no_grad()
-def predict_cls(y: np.ndarray, mc_passes: int = C.MC_PASSES) -> dict:
-    """分类推理 + MC-Dropout 不确定性 (与论文 evaluate_with_uncertainty 同口径)。"""
-    model = REGISTRY.ensure_cls()
-    if model is None:
-        return {"ready": False, "error": REGISTRY.cls_error}
+def predict_cls(y: np.ndarray, mc_passes: int = C.MC_PASSES,
+                checkpoint: Optional[str] = None) -> dict:
+    """分类推理 + MC-Dropout 不确定性 (与论文 evaluate_with_uncertainty 同口径)。
 
-    clip, mel, cwt = extract_dualview(y)
+    checkpoint 为空时用主模型; 传入对比池里的其它键可对同一片段换模型重算。
+    """
+    model = REGISTRY.ensure_cls(checkpoint)
+    if model is None:
+        return {"ready": False, "error": REGISTRY.cls_error(checkpoint),
+                "checkpoint": checkpoint or C.DEFAULT_CHECKPOINT}
+
+    clip, mel, cwt = extract_dualview(y, checkpoint=checkpoint)
 
     xm = torch.from_numpy(mel).unsqueeze(0).unsqueeze(0).to(_DEVICE)
     xc = torch.from_numpy(cwt).unsqueeze(0).unsqueeze(0).to(_DEVICE)
@@ -226,11 +306,24 @@ def predict_cls(y: np.ndarray, mc_passes: int = C.MC_PASSES) -> dict:
 
     probs = [prob_det]
     if mc_passes > 1:
-        _enable_mc_dropout(model)
-        for _ in range(mc_passes):
-            o = model(xm, xc, grl_lambda=0.0)
-            probs.append(float(torch.softmax(o["logits"], dim=1)[0, 1].item()))
-        model.eval()
+        # MC-Dropout 是随机采样: 不固定种子时同一条录音两次分析可能给出不同的
+        # 概率甚至不同的判定 (实测 13918_AV 会在 0.394~0.401 间跳动, 恰好跨过
+        # 决策边际门)。临床辅助工具必须可复现, 因此固定种子并在结束后恢复现场。
+        cpu_state = torch.get_rng_state()
+        cuda_state = torch.cuda.get_rng_state_all() if torch.cuda.is_available() else None
+        try:
+            torch.manual_seed(_MC_SEED)
+            if torch.cuda.is_available():
+                torch.cuda.manual_seed_all(_MC_SEED)
+            _enable_mc_dropout(model)
+            for _ in range(mc_passes):
+                o = model(xm, xc, grl_lambda=0.0)
+                probs.append(float(torch.softmax(o["logits"], dim=1)[0, 1].item()))
+        finally:
+            model.eval()
+            torch.set_rng_state(cpu_state)
+            if cuda_state is not None:
+                torch.cuda.set_rng_state_all(cuda_state)
 
     arr = np.array(probs, dtype=float)
     p_mean = float(arr.mean())
@@ -238,8 +331,10 @@ def predict_cls(y: np.ndarray, mc_passes: int = C.MC_PASSES) -> dict:
     entropy = -(p_clip * np.log(p_clip) + (1 - p_clip) * np.log(1 - p_clip))
     unc = float(0.5 * entropy + 0.5 * float(arr.std()))
 
+    meta = REGISTRY.cls_meta(checkpoint)
     return {
         "ready": True,
+        "checkpoint": checkpoint or C.DEFAULT_CHECKPOINT,
         "prob_abnormal": round(p_mean, 4),
         "prob_normal": round(1 - p_mean, 4),
         "prob_deterministic": round(prob_det, 4),
@@ -249,17 +344,17 @@ def predict_cls(y: np.ndarray, mc_passes: int = C.MC_PASSES) -> dict:
         "embedding": emb,
         "mel": mel.round(4).tolist(),
         "cwt": cwt.round(4).tolist(),
-        "meta": REGISTRY.cls_meta,
+        "meta": meta,
     }
 
 
 # ==================================================================== Grad-CAM
-def compute_gradcam(y: np.ndarray) -> Optional[dict]:
+def compute_gradcam(y: np.ndarray, checkpoint: Optional[str] = None) -> Optional[dict]:
     """对 enc_mel 的 cbam4 (无 CBAM 时回退 layer4) 做 Grad-CAM，返回热力图矩阵。"""
-    model = REGISTRY.ensure_cls()
+    model = REGISTRY.ensure_cls(checkpoint)
     if model is None:
         return None
-    clip, mel, cwt = extract_dualview(y)
+    clip, mel, cwt = extract_dualview(y, checkpoint=checkpoint)
 
     xm = torch.from_numpy(mel).unsqueeze(0).unsqueeze(0).to(_DEVICE)
     xc = torch.from_numpy(cwt).unsqueeze(0).unsqueeze(0).to(_DEVICE)
@@ -303,6 +398,7 @@ def compute_gradcam(y: np.ndarray) -> Optional[dict]:
         cam = cam[0, 0].detach().cpu().numpy()
         cam = (cam - cam.min()) / (cam.max() - cam.min() + 1e-8)
         return {"target_class": int(cls), "prob_abnormal": round(prob, 4),
+                "checkpoint": checkpoint or C.DEFAULT_CHECKPOINT,
                 "cam": cam.round(4).tolist(), "shape": list(cam.shape)}
     except Exception as ex:                                      # noqa: BLE001
         warnings.warn("Grad-CAM failed: %s: %s" % (type(ex).__name__, ex))
