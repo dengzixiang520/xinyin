@@ -1,0 +1,35 @@
+﻿# ===== 不进版本库 =====
+# 训练权重 (近百 MB, 且派生自受控访问数据) —— 用 tools/sync_results.py 获取
+weights/*.pt
+weights/*.pth
+weights/*.pkl
+weights/*.onnx
+
+# 演示用临床音频 —— 受控访问数据集, 不公开发布
+samples/*.wav
+samples/*.flac
+samples/*.mp3
+samples/*.ogg
+
+# 前端构建中间产物与截图
+frontend/_part_*.html
+*.png
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+env/
+
+# 本地环境/凭据
+.env
+.env.local
+*.local
+
+# 编辑器/系统
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

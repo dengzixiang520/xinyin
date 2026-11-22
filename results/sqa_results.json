@@ -1,0 +1,15 @@
+{
+  "5fold_mean_auc": 0.8987,
+  "5fold_std_auc": 0.0174,
+  "5fold_mean_macro_f1": 0.8093,
+  "zero_shot_zchsound_auc": 0.4152,
+  "zero_shot_zchsound_macro_f1": 0.4176,
+  "feature_importance": {
+    "duration_sec": 0.2258,
+    "rms_energy": 0.1995,
+    "silence_ratio": 0.1775,
+    "clipping_ratio": 0.0583,
+    "snr_proxy_db": 0.2326,
+    "stability_cv": 0.1064
+  }
+}

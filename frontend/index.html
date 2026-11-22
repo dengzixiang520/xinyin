@@ -1,0 +1,2562 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>声见其迹 · SONOTRACE v3.0 — 生理声音可视化与智能辅助分析系统</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    /* ======= 默认主题：云母霜白 · 医疗晴空 (Frosted Alabaster & Clinical Sky) ======= */
+    :root,
+    [data-theme="sky"] {
+      --bg-base: #f3f6fc;
+      --bg-gradient: linear-gradient(135deg, #f5f8ff 0%, #edf2fb 45%, #f0f7f9 100%);
+      --bg-glass: rgba(255, 255, 255, 0.78);
+      --bg-card: rgba(255, 255, 255, 0.82);
+      --bg-card-hover: rgba(255, 255, 255, 0.96);
+      --bg-subtle: rgba(241, 245, 249, 0.85);
+      --bg-canvas: #f8fafd;
+      --bg-canvas-bar: #eef3f9;
+
+      --border-subtle: rgba(15, 23, 42, 0.08);
+      --border-bright: rgba(14, 165, 233, 0.35);
+      --inner-glow: inset 0 1px 0 0 rgba(255, 255, 255, 0.9);
+      --card-shadow: 0 12px 32px -12px rgba(15, 23, 42, 0.07), 0 2px 6px -1px rgba(15, 23, 42, 0.04);
+
+      --text-primary: #0f172a;
+      --text-secondary: #475569;
+      --text-muted: #94a3b8;
+
+      --accent-primary: #0284c7;
+      --accent-indigo: #4f46e5;
+      --accent-cyan: #0891b2;
+      --accent-emerald: #059669;
+      --accent-rose: #e11d48;
+      --accent-amber: #d97706;
+
+      --aurora-1: rgba(56, 189, 248, 0.25);
+      --aurora-2: rgba(99, 102, 241, 0.18);
+      --aurora-3: rgba(16, 185, 129, 0.16);
+
+      --spotlight-fill: rgba(14, 165, 233, 0.07);
+      --spotlight-border: rgba(2, 132, 199, 0.45);
+    }
+
+    /* ======= 备选主题 2：雾凇青瓷 · 生命律动 (Bio-Teal & Sage Mist) ======= */
+    [data-theme="celadon"] {
+      --bg-base: #eef6f5;
+      --bg-gradient: linear-gradient(135deg, #f2f9f8 0%, #e7f3f1 50%, #eef5fb 100%);
+      --bg-glass: rgba(255, 255, 255, 0.8);
+      --bg-card: rgba(255, 255, 255, 0.84);
+      --bg-card-hover: rgba(255, 255, 255, 0.97);
+      --bg-subtle: rgba(235, 245, 243, 0.85);
+      --bg-canvas: #f6fbfa;
+      --bg-canvas-bar: #e6f1ef;
+
+      --border-subtle: rgba(13, 148, 136, 0.12);
+      --border-bright: rgba(13, 148, 136, 0.38);
+      --inner-glow: inset 0 1px 0 0 rgba(255, 255, 255, 0.95);
+      --card-shadow: 0 12px 32px -12px rgba(13, 148, 136, 0.08), 0 2px 6px -1px rgba(15, 23, 42, 0.04);
+
+      --text-primary: #0f2926;
+      --text-secondary: #3f625d;
+      --text-muted: #7da09b;
+
+      --accent-primary: #0d9488;
+      --accent-indigo: #0284c7;
+      --accent-cyan: #0891b2;
+      --accent-emerald: #059669;
+      --accent-rose: #e11d48;
+      --accent-amber: #d97706;
+
+      --aurora-1: rgba(20, 184, 166, 0.24);
+      --aurora-2: rgba(56, 189, 248, 0.2);
+      --aurora-3: rgba(99, 102, 241, 0.14);
+
+      --spotlight-fill: rgba(13, 148, 136, 0.08);
+      --spotlight-border: rgba(13, 148, 136, 0.45);
+    }
+
+    /* ======= 备选主题 3：星云雾蓝 · 柔和深蓝灰 (Soft Nordic Slate — 非纯黑) ======= */
+    [data-theme="nordic"] {
+      --bg-base: #1e293b;
+      --bg-gradient: linear-gradient(135deg, #1e293b 0%, #24344d 50%, #1f2d42 100%);
+      --bg-glass: rgba(38, 52, 77, 0.78);
+      --bg-card: rgba(42, 58, 86, 0.68);
+      --bg-card-hover: rgba(51, 70, 102, 0.82);
+      --bg-subtle: rgba(30, 41, 59, 0.7);
+      --bg-canvas: #172234;
+      --bg-canvas-bar: #1e2c42;
+
+      --border-subtle: rgba(255, 255, 255, 0.12);
+      --border-bright: rgba(56, 189, 248, 0.45);
+      --inner-glow: inset 0 1px 0 0 rgba(255, 255, 255, 0.16);
+      --card-shadow: 0 16px 36px -14px rgba(15, 23, 42, 0.4);
+
+      --text-primary: #f8fafc;
+      --text-secondary: #cbd5e1;
+      --text-muted: #94a3b8;
+
+      --accent-primary: #38bdf8;
+      --accent-indigo: #818cf8;
+      --accent-cyan: #22d3ee;
+      --accent-emerald: #34d399;
+      --accent-rose: #fb7185;
+      --accent-amber: #fbbf24;
+
+      --aurora-1: rgba(56, 189, 248, 0.22);
+      --aurora-2: rgba(129, 140, 248, 0.22);
+      --aurora-3: rgba(52, 211, 153, 0.15);
+
+      --spotlight-fill: rgba(56, 189, 248, 0.12);
+      --spotlight-border: rgba(56, 189, 248, 0.55);
+    }
+
+    :root {
+      --font-sans: 'Plus Jakarta Sans', 'Inter', "PingFang SC", "Microsoft YaHei", sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+      --radius-2xl: 20px;
+      --radius-xl: 16px;
+      --radius-lg: 12px;
+      --radius-md: 9px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body {
+      background: var(--bg-gradient);
+      background-attachment: fixed;
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+      min-height: 100vh;
+      overflow-x: hidden;
+      position: relative;
+      transition: background 0.35s ease, color 0.25s ease;
+    }
+
+    /* ======= React Bits Style: Soft Aurora Mesh + Interactive Dot Grid ======= */
+    .ambient-stage {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+
+    .aurora-blob {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(95px);
+      animation: auroraFloat 18s ease-in-out infinite alternate;
+    }
+
+    .aurora-1 {
+      width: 650px;
+      height: 450px;
+      background: radial-gradient(circle, var(--aurora-1) 0%, transparent 70%);
+      top: -140px;
+      left: 5%;
+    }
+
+    .aurora-2 {
+      width: 580px;
+      height: 500px;
+      background: radial-gradient(circle, var(--aurora-2) 0%, transparent 70%);
+      top: -100px;
+      right: 5%;
+      animation-delay: -6s;
+    }
+
+    .aurora-3 {
+      width: 680px;
+      height: 440px;
+      background: radial-gradient(circle, var(--aurora-3) 0%, transparent 70%);
+      bottom: -180px;
+      left: 28%;
+      animation-delay: -11s;
+    }
+
+    @keyframes auroraFloat {
+      0% { transform: translate3d(0, 0, 0) scale(1); }
+      50% { transform: translate3d(40px, 25px, 0) scale(1.07); }
+      100% { transform: translate3d(-30px, -15px, 0) scale(0.95); }
+    }
+
+    #dotGridCanvas {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ======= Floating Liquid-Glass Dock Navbar (MotionSites + Aceternity) ======= */
+    .nav-wrapper {
+      position: sticky;
+      top: 14px;
+      z-index: 100;
+      display: flex;
+      justify-content: center;
+      padding: 0 24px;
+    }
+
+    .glass-navbar {
+      width: 100%;
+      max-width: 1540px;
+      height: 62px;
+      background: var(--bg-glass);
+      backdrop-filter: blur(20px) saturate(180%);
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
+      border: 1px solid var(--border-subtle);
+      box-shadow: var(--inner-glow), var(--card-shadow);
+      border-radius: 999px;
+      padding: 0 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .brand-orb {
+      width: 36px;
+      height: 36px;
+      border-radius: 11px;
+      background: linear-gradient(135deg, var(--accent-primary), var(--accent-indigo));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 6px 16px -3px rgba(2, 132, 199, 0.4);
+    }
+
+    .brand-orb svg {
+      width: 20px;
+      height: 20px;
+      stroke: #fff;
+    }
+
+    .brand-text-wrap {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+    }
+
+    .brand-name {
+      font-size: 17px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: var(--text-primary);
+    }
+
+    .brand-tag {
+      font-family: var(--font-mono);
+      font-size: 10.5px;
+      font-weight: 600;
+      color: var(--accent-primary);
+      background: rgba(2, 132, 199, 0.1);
+      border: 1px solid rgba(2, 132, 199, 0.22);
+      padding: 2px 8px;
+      border-radius: 999px;
+    }
+
+    /* React Bits Sliding Pill Tabs */
+    .nav-pills {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      background: var(--bg-subtle);
+      border: 1px solid var(--border-subtle);
+      padding: 4px;
+      border-radius: 999px;
+    }
+
+    .nav-pill {
+      background: transparent;
+      border: none;
+      color: var(--text-secondary);
+      padding: 7px 15px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 600;
+      font-family: var(--font-sans);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      transition: all 0.22s ease;
+    }
+
+    .nav-pill svg {
+      width: 15px;
+      height: 15px;
+      stroke-width: 2;
+      opacity: 0.75;
+    }
+
+    .nav-pill:hover {
+      color: var(--text-primary);
+    }
+
+    .nav-pill.active {
+      color: #ffffff;
+      background: linear-gradient(135deg, var(--accent-primary), var(--accent-indigo));
+      box-shadow: 0 4px 12px -2px rgba(2, 132, 199, 0.38);
+    }
+
+    .nav-pill.active svg {
+      opacity: 1;
+      stroke: #ffffff;
+    }
+
+    .nav-telemetry {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* 配色方案实时切换胶囊 */
+    .theme-switcher {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: var(--bg-subtle);
+      border: 1px solid var(--border-subtle);
+      padding: 4px 8px;
+      border-radius: 999px;
+      font-size: 11.5px;
+      color: var(--text-secondary);
+    }
+
+    .swatch-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      border: 1px solid transparent;
+      background: transparent;
+      padding: 3px 8px;
+      border-radius: 999px;
+      font-size: 11.5px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .swatch-btn.active {
+      background: var(--bg-card-hover);
+      color: var(--text-primary);
+      border-color: var(--border-subtle);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    }
+
+    .swatch-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      border: 1px solid rgba(0,0,0,0.15);
+    }
+
+    .telemetry-chip {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 5px 11px;
+      border-radius: 999px;
+      background: var(--bg-subtle);
+      border: 1px solid var(--border-subtle);
+      font-size: 11.5px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      font-family: var(--font-mono);
+    }
+
+    .pulse-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      position: relative;
+    }
+
+    .pulse-dot.emerald {
+      background: var(--accent-emerald);
+      box-shadow: 0 0 8px var(--accent-emerald);
+    }
+
+    .pulse-dot.amber {
+      background: var(--accent-amber);
+      box-shadow: 0 0 8px var(--accent-amber);
+    }
+
+    /* ======= Main Stage ======= */
+    .stage-container {
+      position: relative;
+      z-index: 2;
+      max-width: 1540px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 24px 24px 56px;
+    }
+
+    .page-view {
+      display: none;
+      animation: pageReveal 0.32s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .page-view.active {
+      display: block;
+    }
+
+    @keyframes pageReveal {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ======= Aceternity UI: Frosted Spotlight Card + Border Beam ======= */
+    .bento-card {
+      position: relative;
+      background: var(--bg-card);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-radius: var(--radius-2xl);
+      border: 1px solid var(--border-subtle);
+      box-shadow: var(--inner-glow), var(--card-shadow);
+      padding: 22px 24px;
+      overflow: hidden;
+      transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease, border-color 0.25s ease;
+      --mouse-x: -500px;
+      --mouse-y: -500px;
+    }
+
+    .bento-card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      background: radial-gradient(
+        480px circle at var(--mouse-x) var(--mouse-y),
+        var(--spotlight-fill),
+        transparent 70%
+      );
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .bento-card::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      padding: 1.2px;
+      background: radial-gradient(
+        260px circle at var(--mouse-x) var(--mouse-y),
+        var(--spotlight-border),
+        transparent 100%
+      );
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      pointer-events: none;
+      z-index: 1;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .bento-card:hover::before,
+    .bento-card:hover::after {
+      opacity: 1;
+    }
+
+    .bento-card > * {
+      position: relative;
+      z-index: 2;
+    }
+
+    /* Aceternity Border Beam Effect */
+    .border-beam-wrap {
+      position: relative;
+    }
+
+    .border-beam {
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      padding: 1.5px;
+      background: conic-gradient(
+        from var(--beam-angle, 0deg) at 50% 50%,
+        transparent 0deg,
+        transparent 265deg,
+        #0ea5e9 305deg,
+        #6366f1 340deg,
+        #10b981 360deg
+      );
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      pointer-events: none;
+      z-index: 3;
+      animation: spinBeam 8s linear infinite;
+    }
+
+    @property --beam-angle {
+      syntax: "<angle>";
+      initial-value: 0deg;
+      inherits: false;
+    }
+
+    @keyframes spinBeam {
+      to { --beam-angle: 360deg; }
+    }
+
+    /* ======= UIverse Tactile Buttons & Badges ======= */
+    .shiny-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 5px 13px;
+      border-radius: 999px;
+      font-size: 11.5px;
+      font-weight: 600;
+      background: var(--bg-subtle);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-secondary);
+    }
+
+    .shiny-pill span.shimmer-text {
+      background: linear-gradient(90deg, var(--accent-primary) 0%, var(--accent-indigo) 50%, var(--accent-emerald) 100%);
+      background-size: 200% auto;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      font-weight: 700;
+      animation: textShimmer 4s linear infinite;
+    }
+
+    @keyframes textShimmer {
+      to { background-position: 200% center; }
+    }
+
+    .uiverse-btn {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 9px 18px;
+      border-radius: 11px;
+      font-size: 13px;
+      font-weight: 600;
+      font-family: var(--font-sans);
+      color: var(--text-primary);
+      background: var(--bg-card-hover);
+      border: 1px solid var(--border-subtle);
+      box-shadow: 0 2px 5px rgba(15, 23, 42, 0.04);
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .uiverse-btn svg {
+      width: 15px;
+      height: 15px;
+    }
+
+    .uiverse-btn:hover {
+      border-color: var(--border-bright);
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px -4px rgba(2, 132, 199, 0.15);
+    }
+
+    .uiverse-btn:active {
+      transform: translateY(0) scale(0.98);
+    }
+
+    .uiverse-btn-glow {
+      background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-indigo) 100%);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.35),
+        0 8px 20px -5px rgba(2, 132, 199, 0.45);
+      color: #ffffff;
+    }
+
+    .uiverse-btn-glow:hover {
+      color: #ffffff;
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.5),
+        0 10px 24px -3px rgba(2, 132, 199, 0.6);
+      filter: brightness(1.05);
+    }
+
+    .uiverse-btn-rose {
+      background: rgba(225, 29, 72, 0.09);
+      border: 1px solid rgba(225, 29, 72, 0.28);
+      color: var(--accent-rose);
+    }
+
+    .uiverse-btn-rose:hover {
+      background: rgba(225, 29, 72, 0.14);
+      border-color: rgba(225, 29, 72, 0.45);
+    }
+
+    .uiverse-btn-sm {
+      padding: 6px 12px;
+      font-size: 12px;
+      border-radius: 8px;
+    }
+
+    /* Status Tags */
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-size: 11.5px;
+      font-weight: 600;
+      font-family: var(--font-mono);
+    }
+
+    .tag::before {
+      content: "";
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+
+    .tag-emerald {
+      background: rgba(5, 150, 105, 0.1);
+      color: var(--accent-emerald);
+      border: 1px solid rgba(5, 150, 105, 0.25);
+    }
+
+    .tag-rose {
+      background: rgba(225, 29, 72, 0.1);
+      color: var(--accent-rose);
+      border: 1px solid rgba(225, 29, 72, 0.25);
+    }
+
+    .tag-cyan {
+      background: rgba(2, 132, 199, 0.1);
+      color: var(--accent-primary);
+      border: 1px solid rgba(2, 132, 199, 0.24);
+    }
+
+    .tag-amber {
+      background: rgba(217, 119, 6, 0.1);
+      color: var(--accent-amber);
+      border: 1px solid rgba(217, 119, 6, 0.25);
+    }
+
+    /* Section Headers */
+    .section-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+
+    .section-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 14.5px;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .section-icon {
+      width: 30px;
+      height: 30px;
+      border-radius: 9px;
+      background: rgba(2, 132, 199, 0.1);
+      border: 1px solid rgba(2, 132, 199, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--accent-primary);
+    }
+
+    .section-icon svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    /* ======= PAGE 1: BENTO DASHBOARD ======= */
+    .hero-bento {
+      display: grid;
+      grid-template-columns: 1.25fr 1fr;
+      gap: 18px;
+      margin-bottom: 18px;
+    }
+
+    .hero-display-title {
+      font-size: 34px;
+      font-weight: 800;
+      line-height: 1.2;
+      letter-spacing: -0.025em;
+      margin: 14px 0 12px;
+      color: var(--text-primary);
+    }
+
+    .hero-display-title span.gradient-accent {
+      background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-indigo) 55%, var(--accent-emerald) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero-lead {
+      color: var(--text-secondary);
+      font-size: 14px;
+      line-height: 1.7;
+      max-width: 600px;
+      margin-bottom: 22px;
+    }
+
+    .oscilloscope-shell {
+      background: var(--bg-canvas);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-xl);
+      padding: 12px 14px;
+      position: relative;
+      box-shadow: inset 0 2px 6px rgba(15, 23, 42, 0.03);
+    }
+
+    .oscilloscope-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+    }
+
+    /* 4-Step Interactive Pipeline */
+    .pipeline-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+
+    .pipeline-node {
+      cursor: pointer;
+      padding: 16px 18px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .pipeline-node:hover {
+      transform: translateY(-3px);
+      border-color: var(--border-bright);
+    }
+
+    .node-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .node-step-num {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+      letter-spacing: 0.06em;
+    }
+
+    .node-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 3px;
+    }
+
+    .node-desc {
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    /* Metrics Row */
+    .bento-metrics-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+
+    .metric-number {
+      font-family: var(--font-mono);
+      font-size: 34px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      margin: 8px 0 4px;
+      color: var(--text-primary);
+    }
+
+    .dashboard-bottom-bento {
+      display: grid;
+      grid-template-columns: 1.05fr 1.55fr;
+      gap: 18px;
+    }
+
+    .feature-matrix {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .matrix-cell {
+      background: var(--bg-subtle);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 16px;
+      cursor: pointer;
+      transition: all 0.22s ease;
+    }
+
+    .matrix-cell:hover {
+      background: var(--bg-card-hover);
+      border-color: var(--border-bright);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px -8px rgba(2, 132, 199, 0.12);
+    }
+
+    .matrix-cell h4 {
+      font-size: 14px;
+      font-weight: 700;
+      margin: 10px 0 4px;
+      color: var(--text-primary);
+    }
+
+    .matrix-cell p {
+      font-size: 12px;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+
+    /* Table */
+    .modern-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    .modern-table th {
+      text-align: left;
+      padding: 10px 12px;
+      font-size: 11.5px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .modern-table td {
+      padding: 12px 12px;
+      border-bottom: 1px solid var(--border-subtle);
+      color: var(--text-primary);
+    }
+
+    .modern-table tbody tr:hover {
+      background: var(--bg-subtle);
+    }
+
+    /* ======= Segmented Bar & Inputs ======= */
+    .segmented-bar {
+      display: inline-flex;
+      background: var(--bg-subtle);
+      border: 1px solid var(--border-subtle);
+      padding: 4px;
+      border-radius: 12px;
+      margin-bottom: 18px;
+      gap: 4px;
+    }
+
+    .seg-btn {
+      padding: 8px 16px;
+      border: none;
+      background: transparent;
+      color: var(--text-secondary);
+      font-size: 12.5px;
+      font-weight: 600;
+      font-family: var(--font-sans);
+      border-radius: 9px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .seg-btn.active {
+      background: var(--bg-card-hover);
+      color: var(--accent-primary);
+      box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
+    }
+
+    .field-group {
+      margin-bottom: 14px;
+    }
+
+    .field-label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-bottom: 6px;
+    }
+
+    .glass-input {
+      width: 100%;
+      padding: 9px 12px;
+      background: var(--bg-canvas);
+      border: 1px solid var(--border-subtle);
+      border-radius: 9px;
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+      font-size: 13px;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .glass-input:focus {
+      border-color: var(--accent-primary);
+      box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.12);
+    }
+
+    .toggle-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12.5px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .toggle-input {
+      appearance: none;
+      width: 34px;
+      height: 19px;
+      background: rgba(148, 163, 184, 0.35);
+      border: 1px solid var(--border-subtle);
+      border-radius: 999px;
+      position: relative;
+      cursor: pointer;
+      transition: all 0.25s ease;
+    }
+
+    .toggle-input::after {
+      content: "";
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 13px;
+      height: 13px;
+      border-radius: 50%;
+      background: #ffffff;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .toggle-input:checked {
+      background: linear-gradient(135deg, var(--accent-primary), var(--accent-indigo));
+    }
+
+    .toggle-input:checked::after {
+      transform: translateX(15px);
+    }
+
+    /* ======= PAGE 2, 3, 4 Layouts ======= */
+    .acq-grid {
+      display: grid;
+      grid-template-columns: 370px 1fr;
+      gap: 18px;
+    }
+
+    .quality-alert-box {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 18px;
+      border-radius: var(--radius-lg);
+      background: rgba(5, 150, 105, 0.08);
+      border: 1px solid rgba(5, 150, 105, 0.25);
+      margin-top: 14px;
+    }
+
+    .db-grid {
+      display: grid;
+      grid-template-columns: 250px 1fr;
+      gap: 18px;
+    }
+
+    .sample-cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 16px;
+    }
+
+    .workbench-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      margin-bottom: 16px;
+      padding: 14px 20px;
+    }
+
+    .workbench-main-grid {
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 18px;
+    }
+
+    .signal-viewport {
+      background: var(--bg-canvas);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-xl);
+      padding: 12px 16px;
+      margin-bottom: 14px;
+      position: relative;
+      box-shadow: inset 0 2px 6px rgba(15, 23, 42, 0.03);
+    }
+
+    .viewport-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+      font-size: 12.5px;
+    }
+
+    .phase-legend {
+      display: flex;
+      gap: 14px;
+      font-size: 11.5px;
+      color: var(--text-secondary);
+      font-family: var(--font-mono);
+    }
+
+    .phase-dot {
+      display: inline-block;
+      width: 9px;
+      height: 9px;
+      border-radius: 3px;
+      margin-right: 5px;
+    }
+
+    .telemetry-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      font-size: 12.5px;
+    }
+
+    .telemetry-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 9px;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .telemetry-key {
+      color: var(--text-secondary);
+    }
+
+    .telemetry-val {
+      font-family: var(--font-mono);
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .ai-bento-grid {
+      display: grid;
+      grid-template-columns: 310px 1fr 350px;
+      gap: 18px;
+    }
+
+    .ai-verdict-banner {
+      border-radius: var(--radius-xl);
+      padding: 18px 20px;
+      margin-bottom: 16px;
+      background: linear-gradient(135deg, rgba(225, 29, 72, 0.09) 0%, rgba(79, 70, 229, 0.06) 100%);
+      border: 1px solid rgba(225, 29, 72, 0.28);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .ai-verdict-banner.normal {
+      background: linear-gradient(135deg, rgba(5, 150, 105, 0.1) 0%, rgba(2, 132, 199, 0.06) 100%);
+      border-color: rgba(5, 150, 105, 0.28);
+    }
+
+    .prob-item {
+      margin-bottom: 12px;
+    }
+
+    .prob-head {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      margin-bottom: 5px;
+      font-family: var(--font-mono);
+    }
+
+    .prob-rail {
+      height: 8px;
+      background: var(--bg-subtle);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .prob-bar {
+      height: 100%;
+      border-radius: 999px;
+      transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .clinical-sheet {
+      background: #ffffff;
+      color: #0f172a;
+      border-radius: 16px;
+      padding: 40px 48px;
+      max-width: 980px;
+      margin: 0 auto;
+      border: 1px solid rgba(15, 23, 42, 0.1);
+      box-shadow: 0 20px 50px rgba(15, 23, 42, 0.08);
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      cursor: crosshair;
+      border-radius: 8px;
+    }
+  </style>
+
+  <style>
+    /* ================= v3.0 新增组件 (复用既有设计令牌) ================= */
+    .research-table { width:100%; border-collapse:separate; border-spacing:0 6px; font-size:12.5px; }
+    .research-table th { text-align:left; padding:8px 10px; font-size:11px; letter-spacing:.06em;
+      text-transform:uppercase; color:var(--text-muted); font-weight:700; border-bottom:1px solid var(--border-subtle); }
+    .research-table td { padding:9px 10px; background:var(--bg-subtle); color:var(--text-secondary); }
+    .research-table tr td:first-child { border-radius:var(--radius-md) 0 0 var(--radius-md); color:var(--text-primary); font-weight:600; }
+    .research-table tr td:last-child { border-radius:0 var(--radius-md) var(--radius-md) 0; }
+    .research-table tr.best td { background:linear-gradient(90deg, var(--spotlight-fill), transparent); }
+    .mono { font-family:var(--font-mono); }
+    .kpi-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:12px; }
+    .kpi { background:var(--bg-subtle); border-radius:var(--radius-lg); padding:12px 14px;
+      border:1px solid var(--border-subtle); }
+    .kpi .k-val { font-family:var(--font-mono); font-size:20px; font-weight:700; color:var(--accent-primary); line-height:1.2; }
+    .kpi .k-lab { font-size:10.5px; letter-spacing:.05em; text-transform:uppercase; color:var(--text-muted); margin-top:3px; }
+    .chart-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:14px; }
+    .chart-box { background:var(--bg-canvas); border:1px solid var(--border-subtle); border-radius:var(--radius-lg); padding:10px; }
+    .chart-box h4 { font-size:12px; font-weight:700; color:var(--text-secondary); margin-bottom:6px; }
+    .chart-box canvas { width:100%; display:block; border-radius:var(--radius-md); }
+    .drop-zone { border:2px dashed var(--border-bright); border-radius:var(--radius-lg);
+      padding:26px; text-align:center; transition:.2s; cursor:pointer; background:var(--bg-subtle); }
+    .drop-zone.hover { background:var(--spotlight-fill); border-color:var(--accent-primary); }
+    .issue-item { display:flex; gap:8px; align-items:flex-start; font-size:12px; color:var(--text-secondary);
+      padding:6px 0; border-bottom:1px dashed var(--border-subtle); }
+    .issue-item:last-child { border-bottom:none; }
+    .dim-row { display:flex; justify-content:space-between; align-items:center; padding:5px 0;
+      font-size:12px; border-bottom:1px dashed var(--border-subtle); }
+    .dim-row:last-child { border-bottom:none; }
+    .mini-legend { display:flex; gap:14px; flex-wrap:wrap; font-size:11px; color:var(--text-muted); margin-top:6px; }
+    .mini-legend i { display:inline-block; width:9px; height:9px; border-radius:3px; margin-right:4px; }
+    .heat-canvas-wrap { position:relative; }
+    .loading-mask { position:fixed; inset:0; background:rgba(243,246,252,.72); backdrop-filter:blur(6px);
+      display:none; align-items:center; justify-content:center; z-index:9999; }
+    .loading-mask.on { display:flex; }
+    .spinner { width:34px; height:34px; border:3px solid var(--border-subtle);
+      border-top-color:var(--accent-primary); border-radius:50%; animation:spin .8s linear infinite; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+    .badge-live { font-size:10px; padding:2px 7px; border-radius:999px; font-weight:700;
+      background:var(--accent-emerald); color:#fff; letter-spacing:.04em; }
+    .badge-todo { font-size:10px; padding:2px 7px; border-radius:999px; font-weight:700;
+      background:var(--text-muted); color:#fff; letter-spacing:.04em; }
+
+    /* 按钮文字防挤压 */
+    .uiverse-btn, .uiverse-btn-sm, .uiverse-btn-glow, .uiverse-btn-rose { white-space:nowrap; }
+    .uiverse-btn-sm { min-width:86px; padding-left:14px; padding-right:14px; }
+    /* 深链接下拉框 */
+    .glass-input option { background:#fff; color:#0f172a; }
+    /* 样本卡片自适应多列 */
+    .sample-cards-grid { display:grid !important; grid-template-columns:repeat(auto-fill,minmax(132px,1fr)) !important; gap:10px !important; }
+    .agq-grid, .acq-grid { align-items:start; }
+  </style>
+</head>
+<body data-theme="sky">
+
+  <div class="ambient-stage">
+    <div class="aurora-blob aurora-1"></div>
+    <div class="aurora-blob aurora-2"></div>
+    <div class="aurora-blob aurora-3"></div>
+  </div>
+  <canvas id="dotGridCanvas"></canvas>
+
+  <!-- ==================== 顶部玻璃导航坞 ==================== -->
+  <div class="nav-wrapper">
+    <header class="glass-navbar">
+      <div class="brand" onclick="switchPage('dashboard')">
+        <div class="brand-orb">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M2 12h3l2.5-7 4 14 3.5-10 2 3h5"/>
+          </svg>
+        </div>
+        <div class="brand-text-wrap">
+          <span class="brand-name">声见其迹</span>
+          <span class="brand-tag" id="brandTag">SONOTRACE v3.0</span>
+        </div>
+      </div>
+
+      <nav class="nav-pills">
+        <button class="nav-pill active" data-page="dashboard" onclick="switchPage('dashboard')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/></svg>
+          首页工作台
+        </button>
+        <button class="nav-pill" data-page="acquisition" onclick="switchPage('acquisition')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg>
+          采集与质控
+        </button>
+        <button class="nav-pill" data-page="visual" onclick="switchPage('visual')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M2 12h4l3-9 4 18 3-9h6"/></svg>
+          声像对照中心
+        </button>
+        <button class="nav-pill" data-page="ai" onclick="switchPage('ai')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/><circle cx="12" cy="12" r="4"/></svg>
+          智能分析与报告
+        </button>
+        <button class="nav-pill" data-page="research" onclick="switchPage('research')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 19V5M4 19h16"/><rect x="7" y="11" width="3" height="8"/><rect x="12" y="7" width="3" height="12"/><rect x="17" y="14" width="3" height="5"/></svg>
+          论文实验看板
+        </button>
+      </nav>
+
+      <div class="nav-telemetry">
+        <div class="theme-switcher" title="切换背景色调">
+          <button class="swatch-btn active" onclick="setTheme('sky', this)">
+            <span class="swatch-dot" style="background:#e0f2fe;"></span>晴空霜白
+          </button>
+          <button class="swatch-btn" onclick="setTheme('celadon', this)">
+            <span class="swatch-dot" style="background:#ccfbf1;"></span>青瓷薄荷
+          </button>
+          <button class="swatch-btn" onclick="setTheme('nordic', this)">
+            <span class="swatch-dot" style="background:#334155;"></span>星云雾蓝
+          </button>
+        </div>
+        <div class="telemetry-chip">
+          <span class="pulse-dot amber" id="hwDot"></span>
+          <span id="engineText">正在连接后端…</span>
+        </div>
+      </div>
+    </header>
+  </div>
+
+  <main class="stage-container">
+
+    <!-- ==================================================================== -->
+    <!-- MODULE 1 · 首页工作台                                                  -->
+    <!-- ==================================================================== -->
+    <section id="page-dashboard" class="page-view active">
+
+      <div class="hero-bento">
+        <div class="bento-card border-beam-wrap">
+          <div class="border-beam"></div>
+          <div class="shiny-pill">
+            <span class="pulse-dot emerald" style="width:6px;height:6px;"></span>
+            <span class="shimmer-text">PHYSIOLOGICAL ACOUSTIC INTELLIGENCE · 人体生理声音可视化与智能辅助分析</span>
+          </div>
+          <h1 class="hero-display-title">
+            把原本只能听见的生理声音，<br/>
+            转化为<span class="gradient-accent">可观测、可解释的视觉图谱</span>
+          </h1>
+          <p class="hero-lead">
+            集成六维采集质量前置评估、1D U-Net 四状态 S1/S2 心音周期分割、Log-Mel + CWT 双视图时频联动，
+            以及基于 Grad-CAM 的白盒可解释分析，构建「先质控 → 再可视化 → 后白盒推理」的全流程辅助诊断闭环。
+          </p>
+          <div style="display:flex; flex-wrap:wrap; gap:12px;">
+            <button class="uiverse-btn uiverse-btn-glow" onclick="switchPage('visual')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+              进入声像对照中心
+            </button>
+            <button class="uiverse-btn" onclick="switchPage('ai')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v4l3 3"/></svg>
+              Grad-CAM 可解释性分析
+            </button>
+            <button class="uiverse-btn uiverse-btn-rose" onclick="playCurrentAudio()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
+              播放原始心音
+            </button>
+          </div>
+        </div>
+
+        <div class="bento-card" style="display:flex; flex-direction:column; justify-content:space-between;">
+          <div class="section-head" style="margin-bottom:10px;">
+            <div class="section-title">
+              <div class="section-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12h4l3-9 4 18 3-9h6"/></svg>
+              </div>
+              <span>真实心音信号监测流 (Real PCG Telemetry)</span>
+            </div>
+            <span class="tag tag-cyan" id="heroSampleTag">—</span>
+          </div>
+          <div class="oscilloscope-shell">
+            <div class="oscilloscope-bar">
+              <span id="heroMetaLine">APEX · 25–400Hz BANDPASS · NORMALIZED</span>
+              <span style="color:var(--accent-primary); font-weight:600;">S1 / SYSTOLE / S2 / DIASTOLE</span>
+            </div>
+            <canvas id="heroWaveCanvas" height="150"></canvas>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-top:12px; font-size:12px; color:var(--text-secondary);">
+            <span id="heroCaption">正在载入真实样本…</span>
+            <span style="font-family:var(--font-mono); color:var(--accent-emerald); font-weight:600;" id="heroSegInfo">—</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 核心 KPI (全部来自真实实验产出) -->
+      <div class="bento-card" style="margin-bottom:18px;">
+        <div class="section-head">
+          <div class="section-title">
+            <div class="section-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19V5M4 19h16"/><rect x="7" y="11" width="3" height="8"/><rect x="12" y="7" width="3" height="12"/></svg>
+            </div>
+            <span>系统核心指标 (Real Experiment Metrics)</span>
+          </div>
+          <span class="tag tag-emerald" id="kpiSource">加载中</span>
+        </div>
+        <div class="kpi-grid" id="kpiGrid"></div>
+      </div>
+
+      <div class="pipeline-grid">
+        <div class="bento-card pipeline-node" onclick="switchPage('acquisition')">
+          <div class="node-top"><span class="node-step-num">STEP 01 / ACQUISITION</span><span class="tag tag-emerald">在线</span></div>
+          <div><div class="node-title">声音采集与质量评估</div><div class="node-desc">六维质控 · 信噪比与削波实时检测</div></div>
+        </div>
+        <div class="bento-card pipeline-node" onclick="switchPage('visual')">
+          <div class="node-top"><span class="node-step-num">STEP 02 / SEGMENTATION</span><span class="tag tag-emerald">在线</span></div>
+          <div><div class="node-title">S1/S2 周期自动分割</div><div class="node-desc">1D U-Net + Viterbi 生理约束解码</div></div>
+        </div>
+        <div class="bento-card pipeline-node" onclick="switchPage('visual')">
+          <div class="node-top"><span class="node-step-num">STEP 03 / DUALVIEW</span><span class="tag tag-emerald">在线</span></div>
+          <div><div class="node-title">Log-Mel + CWT 双视图</div><div class="node-desc">时域—时频—小波三图联动显微镜</div></div>
+        </div>
+        <div class="bento-card pipeline-node" onclick="switchPage('ai')">
+          <div class="node-top"><span class="node-step-num">STEP 04 / EXPLAIN</span><span class="tag tag-emerald">在线</span></div>
+          <div><div class="node-title">Grad-CAM 白盒分析</div><div class="node-desc">置信度 · 不确定性 · 关注区域热力图</div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================================================================== -->
+    <!-- MODULE 2 · 采集与质控                                                  -->
+    <!-- ==================================================================== -->
+    <section id="page-acquisition" class="page-view">
+      <div class="section-head" style="margin-bottom:16px;">
+        <div class="section-title">
+          <div class="section-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/></svg>
+          </div>
+          <span>六维采集质量前置评估</span>
+        </div>
+        <span class="tag tag-cyan">ESP32 听诊终端接口：/api/quality_check</span>
+      </div>
+
+      <div class="acq-grid">
+        <div class="bento-card">
+          <div class="section-head" style="margin-bottom:12px;">
+            <div class="section-title"><span>上传心音文件</span></div>
+            <span class="tag tag-emerald" id="uploadTag">支持 .wav</span>
+          </div>
+          <div class="drop-zone" id="dropZone">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" style="width:34px;height:34px;color:var(--accent-primary);margin-bottom:8px;">
+              <path d="M12 16V4m0 0L7 9m5-5l5 5"/><path d="M3 15v3a3 3 0 0 0 3 3h12a3 3 0 0 0 3-3v-3"/>
+            </svg>
+            <div style="font-size:13px;font-weight:700;color:var(--text-primary);">点击选择或拖拽 .wav 文件到此处</div>
+            <div style="font-size:11.5px;color:var(--text-muted);margin-top:4px;">单声道 16-bit PCM · 建议 4 kHz · 5–15 秒</div>
+            <input type="file" id="fileInput" accept=".wav,.flac,.mp3,.ogg" style="display:none;" />
+          </div>
+
+          <div style="margin-top:14px;">
+            <div class="section-head" style="margin-bottom:8px;">
+              <div class="section-title"><span>内置真实样本库</span></div>
+              <span class="tag tag-cyan" id="sampleCountTag">—</span>
+            </div>
+            <div class="sample-cards-grid" id="sampleCards"></div>
+          </div>
+        </div>
+
+        <div class="bento-card">
+          <div class="section-head" style="margin-bottom:12px;">
+            <div class="section-title"><span>质控结果</span></div>
+            <span class="tag" id="qualityVerdict">—</span>
+          </div>
+          <div class="prob-head"><span>六维指标</span><span class="mono" id="dimHeader">—</span></div>
+          <div id="dimList"></div>
+          <div style="margin-top:14px;">
+            <div class="prob-head"><span>SQA 随机森林质量概率</span><span class="mono" id="sqaProb">—</span></div>
+            <div class="prob-rail"><div class="prob-bar" id="sqaBar" style="width:0%;"></div></div>
+          </div>
+          <div style="margin-top:14px;">
+            <div class="prob-head"><span>问题提示</span></div>
+            <div id="issueList"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================================================================== -->
+    <!-- MODULE 3 · 声像对照中心                                                -->
+    <!-- ==================================================================== -->
+    <section id="page-visual" class="page-view">
+      <div class="section-head" style="margin-bottom:16px;">
+        <div class="section-title">
+          <div class="section-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12h4l3-9 4 18 3-9h6"/></svg>
+          </div>
+          <span>声像对照中心 · 时域 / 时频 / 小波三图联动</span>
+        </div>
+        <div style="display:flex;gap:10px;align-items:center;">
+          <select id="sampleSelect" class="glass-input" style="height:32px;border-radius:var(--radius-md);padding:0 10px;font-size:12px;"></select>
+          <button class="uiverse-btn uiverse-btn-sm uiverse-btn-glow" id="playBtn" onclick="togglePlay()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            <span id="playBtnText">播放</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="bento-card" style="margin-bottom:16px;">
+        <div class="section-head" style="margin-bottom:8px;">
+          <div class="section-title"><span>① 时域波形 + S1/S2 分割标记</span></div>
+          <span class="tag tag-cyan" id="waveTag">—</span>
+        </div>
+        <div class="signal-viewport">
+          <canvas id="waveCanvas" height="180"></canvas>
+        </div>
+        <div class="mini-legend">
+          <span><i style="background:var(--accent-primary);"></i>心音波形</span>
+          <span><i style="background:var(--accent-emerald);"></i>S1 第一心音</span>
+          <span><i style="background:var(--accent-rose);"></i>S2 第二心音</span>
+          <span><i style="background:var(--accent-amber);"></i>播放指针</span>
+        </div>
+      </div>
+
+      <div class="chart-grid" style="margin-bottom:16px;">
+        <div class="bento-card chart-box" style="padding:14px;">
+          <h4>② Log-Mel 时频谱 (64 × 157)</h4>
+          <canvas id="melCanvas" height="200"></canvas>
+        </div>
+        <div class="bento-card chart-box" style="padding:14px;">
+          <h4>③ CWT 连续小波尺度图 (64 × 157)</h4>
+          <canvas id="cwtCanvas" height="200"></canvas>
+        </div>
+      </div>
+
+      <div class="bento-card">
+        <div class="section-head" style="margin-bottom:8px;">
+          <div class="section-title"><span>④ 心音微观观察 (局部放大镜)</span></div>
+          <span class="tag tag-emerald" id="zoomTag">点击上方任一图定位</span>
+        </div>
+        <canvas id="zoomCanvas" height="150"></canvas>
+      </div>
+    </section>
+
+    <!-- ==================================================================== -->
+    <!-- MODULE 4 · 智能分析与报告                                              -->
+    <!-- ==================================================================== -->
+    <section id="page-ai" class="page-view">
+      <div class="ai-verdict-banner" id="aiBanner">
+        <div>
+          <div style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted);">AI 辅助判定</div>
+          <div id="aiVerdict" style="font-size:26px;font-weight:800;color:var(--text-primary);margin-top:2px;">—</div>
+          <div id="aiReason" style="font-size:12.5px;color:var(--text-secondary);margin-top:4px;">—</div>
+        </div>
+        <div style="text-align:right;">
+          <div class="metric-number" id="aiProbBig">—</div>
+          <div style="font-size:11px;color:var(--text-muted);">异常概率</div>
+        </div>
+      </div>
+
+      <div class="ai-bento-grid">
+        <div class="bento-card">
+          <div class="section-head" style="margin-bottom:10px;">
+            <div class="section-title"><span>分类置信度与 MC-Dropout 不确定性</span></div>
+          </div>
+          <div class="prob-item">
+            <div class="prob-head"><span>正常</span><span class="mono" id="pNormal">—</span></div>
+            <div class="prob-rail"><div class="prob-bar" id="barNormal" style="width:0%;background:var(--accent-emerald);"></div></div>
+          </div>
+          <div class="prob-item">
+            <div class="prob-head"><span>异常</span><span class="mono" id="pAbnormal">—</span></div>
+            <div class="prob-rail"><div class="prob-bar" id="barAbnormal" style="width:0%;background:var(--accent-rose);"></div></div>
+          </div>
+          <div style="margin-top:14px;">
+            <div class="prob-head"><span>认知不确定度 (熵 + 采样标准差)</span><span class="mono" id="uncVal">—</span></div>
+            <div class="prob-rail"><div class="prob-bar" id="uncBar" style="width:0%;background:var(--accent-amber);"></div></div>
+          </div>
+          <div class="mini-legend" id="mcLegend" style="margin-top:12px;"></div>
+        </div>
+
+        <div class="bento-card">
+          <div class="section-head" style="margin-bottom:10px;">
+            <div class="section-title"><span>Grad-CAM 模型关注区域</span></div>
+            <div class="toggle-label" onclick="toggleGradcam()">
+              <input type="checkbox" class="toggle-input" id="camToggle" checked />
+              <span style="font-size:11.5px;color:var(--text-secondary);">叠加热力图</span>
+            </div>
+          </div>
+          <div class="heat-canvas-wrap">
+            <canvas id="camCanvas" height="200"></canvas>
+          </div>
+          <div class="mini-legend">
+            <span><i style="background:#0284c7;"></i>低关注</span>
+            <span><i style="background:#facc15;"></i>中关注</span>
+            <span><i style="background:#e11d48;"></i>高关注（模型决策依据）</span>
+          </div>
+        </div>
+
+        <div class="bento-card">
+          <div class="section-head" style="margin-bottom:10px;">
+            <div class="section-title"><span>四通道包络 (分割模型输入)</span></div>
+          </div>
+          <canvas id="envCanvas" height="200"></canvas>
+          <div class="mini-legend">
+            <span><i style="background:#0284c7;"></i>Hilbert</span>
+            <span><i style="background:#059669;"></i>同态</span>
+            <span><i style="background:#d97706;"></i>小波</span>
+            <span><i style="background:#e11d48;"></i>PSD</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="bento-card clinical-sheet" id="reportSheet" style="margin-top:16px;">
+        <div class="section-head" style="margin-bottom:12px;">
+          <div class="section-title"><span>声见其迹 · 人体生理声音智能辅助分析报告单</span></div>
+          <button class="uiverse-btn uiverse-btn-sm" onclick="window.print()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+            打印 / 导出
+          </button>
+        </div>
+        <div id="reportBody"></div>
+      </div>
+    </section>
+
+    <!-- ==================================================================== -->
+    <!-- MODULE 5 · 论文实验看板 (真实训练产出)                                 -->
+    <!-- ==================================================================== -->
+    <section id="page-research" class="page-view">
+      <div class="section-head" style="margin-bottom:16px;">
+        <div class="section-title">
+          <div class="section-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19V5M4 19h16"/><rect x="7" y="11" width="3" height="8"/><rect x="12" y="7" width="3" height="12"/><rect x="17" y="14" width="3" height="5"/></svg>
+          </div>
+          <span>论文实验看板 · 5 表 5 图实时对应</span>
+        </div>
+        <span class="tag tag-emerald" id="researchSource">真实训练产物</span>
+      </div>
+
+      <div class="bento-card" style="margin-bottom:16px;">
+        <div class="section-head" style="margin-bottom:12px;">
+          <div class="section-title"><span>实验进度与核心结果</span></div>
+          <span class="tag tag-cyan" id="expProgress">—</span>
+        </div>
+        <div class="kpi-grid" id="researchKpi"></div>
+      </div>
+
+      <div class="chart-grid" style="margin-bottom:16px;">
+        <div class="bento-card chart-box" style="padding:14px;">
+          <h4>Stage 2 · 1D U-Net 分割训练曲线 (Frame Acc / Event F1)</h4>
+          <canvas id="segCurveCanvas" height="190"></canvas>
+          <div class="mini-legend">
+            <span><i style="background:#0284c7;"></i>逐帧准确率</span>
+            <span><i style="background:#e11d48;"></i>事件级 F1 (±60ms)</span>
+          </div>
+        </div>
+        <div class="bento-card chart-box" style="padding:14px;">
+          <h4>Stage 1 · 六维 SQA 特征重要性</h4>
+          <canvas id="sqaImpCanvas" height="190"></canvas>
+        </div>
+      </div>
+
+      <div class="bento-card" style="margin-bottom:16px;">
+        <div class="section-head" style="margin-bottom:10px;">
+          <div class="section-title"><span>Table 2 / 3 / 4 · 分类实验真实指标</span></div>
+          <span class="tag tag-amber">训练中项显示为 TBD</span>
+        </div>
+        <div style="overflow-x:auto;">
+          <table class="research-table" id="expTable">
+            <thead>
+              <tr>
+                <th>实验组</th><th>协议 / 模型</th><th>MAcc/UAR</th><th>AUROC</th>
+                <th>Se</th><th>Sp</th><th>Macro-F1</th><th>参数量</th><th>时延</th>
+              </tr>
+            </thead>
+            <tbody id="expTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="bento-card">
+        <div class="section-head" style="margin-bottom:10px;">
+          <div class="section-title"><span>Table 1 · 数据集统计 (7 库 / 14 设备域)</span></div>
+          <span class="tag tag-cyan" id="datasetTotals">—</span>
+        </div>
+        <div style="overflow-x:auto;">
+          <table class="research-table" id="datasetTable">
+            <thead>
+              <tr><th>数据集</th><th>记录数</th><th>受试者</th><th>时长 (h)</th><th>平均 (s)</th><th>设备域</th><th>采样率</th><th>时长 min/med/max</th></tr>
+            </thead>
+            <tbody id="datasetTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <div class="loading-mask" id="loadingMask"><div class="spinner"></div></div>
+<script>
+/* =====================================================================
+   声见其迹 SONOTRACE v3.0 — 比赛展示端前端逻辑
+   数据源: FastAPI 后端 (/api/*), 全部数值来自论文真实训练产物
+   若后端不可达 -> 自动进入离线演示模式 (波形/曲线用内置兜底), 保证答辩零翻车
+   ===================================================================== */
+
+const API = '';                       // 同源部署留空
+const S = {
+  overview: null,
+  experiments: null,
+  datasets: null,
+  seg: null,
+  sqa: null,
+  samples: [],
+  current: null,        // 当前分析结果
+  currentSample: null,
+  playing: false,
+  playT: 0,
+  playDur: 0,
+  audioCtx: null,
+  audioBuf: null,
+  srcNode: null,
+  rafId: null,
+  showCam: true,
+  zoomTimeSec: null,
+  online: false,
+  theme: 'sky'
+};
+
+/* ---------------------------------------------------------------- 工具 */
+const $ = id => document.getElementById(id);
+const fmt = (v, d = 3) => (v === null || v === undefined || Number.isNaN(v)) ? '—' : Number(v).toFixed(d);
+const pct = v => (v === null || v === undefined) ? '—' : (Number(v) * 100).toFixed(1) + '%';
+const signed = (v, d = 3) => (v === null || v === undefined) ? '—'
+  : (Number(v) >= 0 ? '+' : '−') + Math.abs(Number(v)).toFixed(d);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+function toast(msg, kind) {
+  let el = document.getElementById('toastBox');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'toastBox';
+    el.style.cssText = 'position:fixed;left:50%;transform:translateX(-50%);bottom:26px;z-index:10000;'
+      + 'padding:10px 18px;border-radius:12px;font-size:13px;font-weight:600;color:#fff;'
+      + 'box-shadow:0 12px 30px -10px rgba(15,23,42,.35);transition:.25s;opacity:0;';
+    document.body.appendChild(el);
+  }
+  el.textContent = msg;
+  el.style.background = kind === 'err' ? 'var(--accent-rose)'
+    : kind === 'ok' ? 'var(--accent-emerald)' : 'var(--accent-primary)';
+  el.style.opacity = '1';
+  clearTimeout(el._t);
+  el._t = setTimeout(() => { el.style.opacity = '0'; }, 2200);
+}
+
+async function apiGet(path) {
+  const r = await fetch(API + path, { headers: { 'Accept': 'application/json' } });
+  if (!r.ok) throw new Error(path + ' -> HTTP ' + r.status);
+  return r.json();
+}
+async function apiPostFile(path, file) {
+  const fd = new FormData();
+  fd.append('file', file, file.name || 'upload.wav');
+  const r = await fetch(API + path, { method: 'POST', body: fd });
+  if (!r.ok) throw new Error(path + ' -> HTTP ' + r.status);
+  return r.json();
+}
+function loading(on) { $('loadingMask').classList.toggle('on', !!on); }
+
+/* ---------------------------------------------------------------- 主题 & 导航 */
+function setTheme(name, btn) {
+  document.body.setAttribute('data-theme', name);
+  S.theme = name;
+  document.querySelectorAll('.swatch-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  drawDotGrid();
+  if (S.current) { renderAll(); }
+}
+
+function switchPage(pageId) {
+  document.querySelectorAll('.page-view').forEach(p => p.classList.remove('active'));
+  const target = $('page-' + pageId);
+  if (target) target.classList.add('active');
+  document.querySelectorAll('.nav-pill').forEach(b => {
+    b.classList.toggle('active', b.dataset.page === pageId);
+  });
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  if (pageId === 'visual') { renderVisual(); }
+  if (pageId === 'ai') { renderAI(); }
+  if (pageId === 'research') { renderResearch(); }
+}
+
+/* ---------------------------------------------------------------- 交互点阵背景 */
+let gMouse = { x: -9999, y: -9999 };
+function isDark() { return S.theme === 'nordic'; }
+function drawDotGrid() {
+  const cv = $('dotGridCanvas');
+  if (!cv) return;
+  const ctx = cv.getContext('2d');
+  const w = cv.width = window.innerWidth;
+  const h = cv.height = window.innerHeight;
+  ctx.clearRect(0, 0, w, h);
+  const sp = 30, dark = isDark();
+  const base = dark ? 'rgba(148,163,184,' : 'rgba(100,116,139,';
+  for (let x = sp; x < w; x += sp) {
+    for (let y = sp; y < h; y += sp) {
+      const dx = x - gMouse.x, dy = y - gMouse.y;
+      const d = Math.sqrt(dx * dx + dy * dy);
+      let a = dark ? 0.10 : 0.13, r = 1.0;
+      if (d < 170) {
+        const f = 1 - d / 170;
+        a += f * (dark ? 0.30 : 0.26);
+        r += f * 1.5;
+      }
+      ctx.fillStyle = base + a.toFixed(3) + ')';
+      ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
+    }
+  }
+}
+
+/* ---------------------------------------------------------------- 色标 */
+function magma(t) {                 // 0..1 -> [r,g,b]
+  t = Math.max(0, Math.min(1, t));
+  const stops = [[0,0,4],[28,16,68],[79,18,123],[129,37,129],[181,54,122],[229,80,100],[251,135,97],[254,194,135],[252,253,191]];
+  const p = t * (stops.length - 1), i = Math.floor(p), f = p - i;
+  const a = stops[i], b = stops[Math.min(i + 1, stops.length - 1)];
+  return [a[0]+(b[0]-a[0])*f, a[1]+(b[1]-a[1])*f, a[2]+(b[2]-a[2])*f];
+}
+function viridis(t) {
+  t = Math.max(0, Math.min(1, t));
+  const stops = [[68,1,84],[72,40,120],[62,74,137],[49,104,142],[38,130,142],[31,158,137],[53,183,121],[109,205,89],[180,222,44],[253,231,37]];
+  const p = t * (stops.length - 1), i = Math.floor(p), f = p - i;
+  const a = stops[i], b = stops[Math.min(i + 1, stops.length - 1)];
+  return [a[0]+(b[0]-a[0])*f, a[1]+(b[1]-a[1])*f, a[2]+(b[2]-a[2])*f];
+}
+function jet(t) {
+  t = Math.max(0, Math.min(1, t));
+  const r = Math.round(255 * Math.min(1, Math.max(0, 1.5 - Math.abs(4*t - 3))));
+  const g = Math.round(255 * Math.min(1, Math.max(0, 1.5 - Math.abs(4*t - 2))));
+  const b = Math.round(255 * Math.min(1, Math.max(0, 1.5 - Math.abs(4*t - 1))));
+  return [r, g, b];
+}
+
+/* ---------------------------------------------------------------- 绘图: 波形 */
+function drawWave(cv, pts, opt) {
+  if (!cv) return;
+  opt = opt || {};
+  const ctx = cv.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  const w = cv.clientWidth || 800, h = cv.clientHeight || (cv.height || 180);
+  cv.width = w * dpr; cv.height = h * dpr;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, w, h);
+
+  const dark = isDark();
+  ctx.fillStyle = dark ? '#172234' : '#f8fafd';
+  ctx.fillRect(0, 0, w, h);
+
+  // 网格
+  ctx.strokeStyle = dark ? 'rgba(255,255,255,.06)' : 'rgba(15,23,42,.05)';
+  ctx.lineWidth = 1;
+  for (let x = 0; x <= w; x += 40) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke(); }
+  for (let y = 0; y <= h; y += 30) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke(); }
+
+  if (!pts || !pts.length) {
+    ctx.fillStyle = dark ? '#64748b' : '#94a3b8';
+    ctx.font = '12px ' + getComputedStyle(document.body).getPropertyValue('--font-sans');
+    ctx.textAlign = 'center';
+    ctx.fillText('暂无波形数据', w / 2, h / 2);
+    return;
+  }
+
+  const n = pts.length;
+  let amp = 0.001;
+  for (const v of pts) amp = Math.max(amp, Math.abs(v));
+  const mid = h * 0.5, scale = (h * 0.40) / amp;
+
+  // 中线
+  ctx.strokeStyle = dark ? 'rgba(255,255,255,.12)' : 'rgba(15,23,42,.10)';
+  ctx.beginPath(); ctx.moveTo(0, mid); ctx.lineTo(w, mid); ctx.stroke();
+
+  // 波形
+  const accent = getComputedStyle(document.body).getPropertyValue('--accent-primary').trim() || '#0284c7';
+  ctx.strokeStyle = accent; ctx.lineWidth = 1.5; ctx.beginPath();
+  for (let i = 0; i < n; i++) {
+    const x = (i / (n - 1)) * w, y = mid - pts[i] * scale;
+    i ? ctx.lineTo(x, y) : ctx.moveTo(x, y);
+  }
+  ctx.stroke();
+
+  // S1 / S2 标记
+  const T = opt.totalSec || 0;
+  if (T > 0 && opt.s1) {
+    ctx.setLineDash([4, 3]);
+    ctx.strokeStyle = '#059669'; ctx.lineWidth = 1.2;
+    opt.s1.forEach(t => {
+      if (t > T) return;
+      const x = (t / T) * w;
+      ctx.beginPath(); ctx.moveTo(x, 6); ctx.lineTo(x, h - 6); ctx.stroke();
+      ctx.fillStyle = '#059669'; ctx.font = 'bold 10px monospace'; ctx.textAlign = 'center';
+      ctx.fillText('S1', x, 14);
+    });
+    ctx.strokeStyle = '#e11d48';
+    (opt.s2 || []).forEach(t => {
+      if (t > T) return;
+      const x = (t / T) * w;
+      ctx.beginPath(); ctx.moveTo(x, 6); ctx.lineTo(x, h - 6); ctx.stroke();
+      ctx.fillStyle = '#e11d48'; ctx.font = 'bold 10px monospace'; ctx.textAlign = 'center';
+      ctx.fillText('S2', x, h - 8);
+    });
+    ctx.setLineDash([]);
+  }
+
+  // 播放指针
+  if (opt.playhead != null && T > 0) {
+    const x = Math.max(0, Math.min(w, (opt.playhead / T) * w));
+    ctx.strokeStyle = '#d97706'; ctx.lineWidth = 2.2;
+    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke();
+    ctx.beginPath(); ctx.arc(x, 4, 3.5, 0, Math.PI * 2); ctx.fillStyle = '#d97706'; ctx.fill();
+  }
+
+  // 放大选区
+  if (opt.sel && T > 0) {
+    const x0 = (Math.max(0, opt.sel[0]) / T) * w, x1 = (Math.min(T, opt.sel[1]) / T) * w;
+    ctx.fillStyle = dark ? 'rgba(56,189,248,.16)' : 'rgba(2,132,199,.12)';
+    ctx.fillRect(x0, 0, Math.max(2, x1 - x0), h);
+  }
+}
+
+/* ---------------------------------------------------------------- 绘图: 热力图 */
+function drawHeat(cv, mat, opt) {
+  if (!cv) return;
+  opt = opt || {};
+  const ctx = cv.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  const w = cv.clientWidth || 480, h = cv.clientHeight || (cv.height || 200);
+  cv.width = w * dpr; cv.height = h * dpr;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, w, h);
+
+  if (!mat || !mat.length || !mat[0]) {
+    ctx.fillStyle = isDark() ? '#172234' : '#f8fafd'; ctx.fillRect(0, 0, w, h);
+    ctx.fillStyle = '#94a3b8'; ctx.font = '12px sans-serif'; ctx.textAlign = 'center';
+    ctx.fillText('暂无谱图数据', w / 2, h / 2);
+    return;
+  }
+  const F = mat.length, T = mat[0].length;
+  let mn = Infinity, mx = -Infinity;
+  for (let i = 0; i < F; i++) for (let j = 0; j < T; j++) {
+    const v = mat[i][j]; if (v < mn) mn = v; if (v > mx) mx = v;
+  }
+  const span = (mx - mn) || 1;
+  const cmap = opt.cmap === 'jet' ? jet : (opt.cmap === 'viridis' ? viridis : magma);
+
+  const off = document.createElement('canvas');
+  off.width = T; off.height = F;
+  const octx = off.getContext('2d');
+  const img = octx.createImageData(T, F);
+  for (let i = 0; i < F; i++) {
+    for (let j = 0; j < T; j++) {
+      const t = (mat[i][j] - mn) / span;
+      const [r, g, b] = cmap(t);
+      const idx = ((F - 1 - i) * T + j) * 4;      // 低频在下
+      img.data[idx] = r; img.data[idx + 1] = g; img.data[idx + 2] = b; img.data[idx + 3] = opt.alpha != null ? opt.alpha : 255;
+    }
+  }
+  octx.putImageData(img, 0, 0);
+  ctx.imageSmoothingEnabled = true;
+  if (opt.base) {                                 // 灰度底图 (Grad-CAM 叠加用)
+    const bctx = document.createElement('canvas');
+    bctx.width = T; bctx.height = F;
+    const bimg = bctx.getContext('2d').createImageData(T, F);
+    for (let i = 0; i < F; i++) for (let j = 0; j < T; j++) {
+      const t = (opt.base[i][j] - minOf(opt.base)) / (spanOf(opt.base) || 1);
+      const v = Math.round(t * 255), idx = ((F - 1 - i) * T + j) * 4;
+      bimg.data[idx] = bimg.data[idx+1] = bimg.data[idx+2] = v; bimg.data[idx+3] = 255;
+    }
+    bctx.getContext('2d').putImageData(bimg, 0, 0);
+    ctx.drawImage(bctx, 0, 0, w, h);
+  }
+  ctx.drawImage(off, 0, 0, w, h);
+
+  if (opt.rows || opt.cols) {                     // 轴
+    ctx.fillStyle = isDark() ? '#cbd5e1' : '#475569';
+    ctx.font = '10px monospace';
+    ctx.textAlign = 'left';
+    if (opt.yLabel) ctx.fillText(opt.yLabel, 4, 12);
+    if (opt.xLabel) { ctx.textAlign = 'right'; ctx.fillText(opt.xLabel, w - 4, h - 4); }
+  }
+  if (opt.playhead != null && opt.totalSec) {
+    const x = (opt.playhead / opt.totalSec) * w;
+    ctx.strokeStyle = '#d97706'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke();
+  }
+}
+function minOf(m) { let v = Infinity; for (const r of m) for (const x of r) if (x < v) v = x; return v; }
+function spanOf(m) { let a = Infinity, b = -Infinity; for (const r of m) for (const x of r) { if (x < a) a = x; if (x > b) b = x; } return b - a; }
+
+/* ---------------------------------------------------------------- 绘图: 折线 */
+function drawLine(cv, series, opt) {
+  if (!cv) return;
+  opt = opt || {};
+  const ctx = cv.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  const w = cv.clientWidth || 400, h = cv.clientHeight || (cv.height || 190);
+  cv.width = w * dpr; cv.height = h * dpr;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, w, h);
+  const dark = isDark();
+  ctx.fillStyle = dark ? '#172234' : '#f8fafd'; ctx.fillRect(0, 0, w, h);
+
+  const padL = 34, padR = 10, padT = 12, padB = 22;
+  const iw = w - padL - padR, ih = h - padT - padB;
+
+  let mn = Infinity, mx = -Infinity;
+  series.forEach(s => s.data.forEach(v => { if (v != null) { if (v < mn) mn = v; if (v > mx) mx = v; } }));
+  if (!isFinite(mn)) { mn = 0; mx = 1; }
+  if (mx - mn < 1e-6) { mx = mn + 1; }
+  const pad = (mx - mn) * 0.12; mn -= pad; mx += pad;
+
+  ctx.strokeStyle = dark ? 'rgba(255,255,255,.07)' : 'rgba(15,23,42,.06)';
+  ctx.fillStyle = isDark() ? '#64748b' : '#94a3b8';
+  ctx.font = '9px monospace'; ctx.textAlign = 'right';
+  for (let k = 0; k <= 4; k++) {
+    const y = padT + (ih * k / 4);
+    ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(w - padR, y); ctx.stroke();
+    const val = mx - (mx - mn) * (k / 4);
+    ctx.fillText(val.toFixed(2), padL - 4, y + 3);
+  }
+
+  series.forEach(s => {
+    const n = s.data.length;
+    if (!n) return;
+    ctx.strokeStyle = s.color || '#0284c7';
+    ctx.lineWidth = s.width || 1.8;
+    if (s.dash) ctx.setLineDash(s.dash); else ctx.setLineDash([]);
+    ctx.beginPath();
+    let started = false;
+    s.data.forEach((v, i) => {
+      if (v == null) { started = false; return; }
+      const x = padL + (n === 1 ? iw / 2 : (i / (n - 1)) * iw);
+      const y = padT + ih - ((v - mn) / (mx - mn)) * ih;
+      started ? ctx.lineTo(x, y) : ctx.moveTo(x, y);
+      started = true;
+    });
+    ctx.stroke();
+    ctx.setLineDash([]);
+  });
+
+  if (opt.xLabel) {
+    ctx.fillStyle = isDark() ? '#64748b' : '#94a3b8';
+    ctx.font = '9px monospace'; ctx.textAlign = 'center';
+    ctx.fillText(opt.xLabel, padL + iw / 2, h - 6);
+  }
+}
+
+/* ---------------------------------------------------------------- 绘图: 横向条形 */
+function drawBars(cv, items, opt) {
+  if (!cv) return;
+  opt = opt || {};
+  const ctx = cv.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  const w = cv.clientWidth || 400, h = cv.clientHeight || (cv.height || 190);
+  cv.width = w * dpr; cv.height = h * dpr;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, w, h);
+  const dark = isDark();
+  ctx.fillStyle = dark ? '#172234' : '#f8fafd'; ctx.fillRect(0, 0, w, h);
+
+  const n = items.length || 1;
+  const rowH = Math.min(26, (h - 12) / n);
+  const labelW = 108, barMax = w - labelW - 52;
+  const maxV = Math.max(...items.map(x => x.value), 1e-6);
+  ctx.font = '10.5px monospace';
+  items.forEach((it, i) => {
+    const y = 6 + i * rowH;
+    ctx.fillStyle = dark ? '#cbd5e1' : '#475569';
+    ctx.textAlign = 'left';
+    ctx.fillText(it.label.length > 15 ? it.label.slice(0, 15) : it.label, 4, y + rowH * 0.62);
+    const bw = (it.value / maxV) * barMax;
+    ctx.fillStyle = it.color || getComputedStyle(document.body).getPropertyValue('--accent-primary').trim();
+    const bh = Math.max(6, rowH - 10);
+    roundRect(ctx, labelW, y + (rowH - bh) / 2, Math.max(2, bw), bh, 3);
+    ctx.fill();
+    ctx.fillStyle = dark ? '#94a3b8' : '#64748b';
+    ctx.textAlign = 'left';
+    ctx.fillText(it.value.toFixed(3), labelW + bw + 5, y + rowH * 0.62);
+  });
+}
+function roundRect(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
+}
+
+/* ---------------------------------------------------------------- 渲染: 首页 */
+function renderKpi() {
+  const ov = S.overview;
+  const grid = $('kpiGrid');
+  if (!grid) return;
+  if (!ov) { grid.innerHTML = '<div class="kpi"><div class="k-val">—</div><div class="k-lab">暂无数据</div></div>'; return; }
+  const ds = ov.dataset || {}, ex = ov.experiments || {}, sq = ov.sqa || {}, sg = ov.seg || {};
+  const items = [
+    { v: (ds.total_records || 0).toLocaleString(), l: '心音记录总数' },
+    { v: (ds.total_hours || 0).toFixed(1) + ' h', l: '累计音频时长' },
+    { v: (ds.total_subjects || 0).toLocaleString(), l: '受试者总数' },
+    { v: ds.n_datasets || '—', l: '临床数据库' },
+    { v: fmt(sg.best_event_f1), l: 'S1/S2 事件级 F1' },
+    { v: pct(sq.cv_auc), l: 'SQA 5 折 AUC' },
+    { v: (ex.completed || 0) + ' / ' + (ex.total || 0), l: '论文实验完成度' },
+  ];
+  grid.innerHTML = items.map(i =>
+    `<div class="kpi"><div class="k-val">${esc(i.v)}</div><div class="k-lab">${esc(i.l)}</div></div>`
+  ).join('');
+  $('kpiSource').textContent = '真实训练产物';
+}
+
+function renderHero() {
+  const cur = S.current;
+  const cv = $('heroWaveCanvas');
+  if (!cv) return;
+  if (!cur) {
+    drawWave(cv, [], {});
+    return;
+  }
+  const seg = cur.segmentation || {};
+  drawWave(cv, (cur.visualization.waveform_500pts || []).slice(0, 400), {
+    s1: seg.s1_centers_sec, s2: seg.s2_centers_sec,
+    totalSec: cur.visualization.vis_duration_sec
+  });
+  $('heroSampleTag').textContent = cur.filename || '—';
+  $('heroMetaLine').textContent = `${cur.sample_rate} Hz · 25–400Hz BANDPASS · ${cur.duration_sec}s`;
+  $('heroCaption').textContent = cur.engine_mode === 'real_pytorch_model'
+    ? '真实 PyTorch 模型推理 · ' + (cur.prediction.meta?.model || '')
+    : 'DSP 声学模式 (cls_best.pt 待放入)';
+  $('heroSegInfo').textContent = seg.ready
+    ? `S1×${(seg.s1_centers_sec || []).length} · S2×${(seg.s2_centers_sec || []).length} · 周期 ${seg.cycle_ms || '—'}ms`
+    : '分割模型待载入';
+}
+
+/* ---------------------------------------------------------------- 渲染: 样本库 */
+function renderSamples() {
+  const grid = $('sampleCards');
+  if (!grid) return;
+  if (!S.samples.length) { grid.innerHTML = '<div style="font-size:12px;color:var(--text-muted);">无内置样本</div>'; return; }
+  grid.innerHTML = S.samples.map(s => `
+    <div class="bento-card" style="padding:12px;cursor:pointer;${S.currentSample === s.name ? 'outline:2px solid var(--accent-primary);' : ''}"
+         onclick="analyzeSample('${esc(s.name)}')">
+      <div style="font-size:12.5px;font-weight:700;color:var(--text-primary);">${esc(s.name)}</div>
+      <div style="font-size:11px;color:var(--text-muted);margin-top:3px;">${s.kb} KB</div>
+      <div style="margin-top:8px;font-size:11px;color:var(--accent-primary);font-weight:600;">点击分析 →</div>
+    </div>`).join('');
+  $('sampleCountTag').textContent = S.samples.length + ' 条内置样本';
+
+  const sel = $('sampleSelect');
+  if (sel) {
+    sel.innerHTML = S.samples.map(s => `<option value="${esc(s.name)}">${esc(s.name)}</option>`).join('');
+    sel.onchange = () => analyzeSample(sel.value);
+  }
+}
+
+function renderQuality() {
+  const q = S.current && S.current.quality;
+  const dimList = $('dimList');
+  if (!dimList) return;
+  if (!q) {
+    dimList.innerHTML = '<div style="font-size:12px;color:var(--text-muted);">尚未分析</div>';
+    $('qualityVerdict').textContent = '—';
+    return;
+  }
+  const f = q.features;
+  const names = {
+    duration_sec: '录音时长 (s)', rms_energy: '均方根能量', silence_ratio: '静音帧比例',
+    clipping_ratio: '峰值削波比例', snr_proxy_db: '频带信噪比 (dB)', stability_cv: '能量稳定系数 CV'
+  };
+  dimList.innerHTML = Object.keys(names).map(k =>
+    `<div class="dim-row"><span>${names[k]}</span><span class="mono" style="color:var(--text-primary);font-weight:600;">${f[k]}</span></div>`
+  ).join('');
+  $('dimHeader').textContent = q.passed ? 'PASS' : 'FAIL';
+
+  const vEl = $('qualityVerdict');
+  vEl.textContent = q.status_text;
+  vEl.className = 'tag ' + (q.passed ? 'tag-emerald' : 'tag-rose');
+
+  const sp = q.sqa && q.sqa.prob_quality_pass;
+  $('sqaProb').textContent = sp != null ? pct(sp) : '模型未载入';
+  $('sqaBar').style.width = sp != null ? (sp * 100).toFixed(1) + '%' : '0%';
+  $('sqaBar').style.background = (sp != null && sp >= 0.5) ? 'var(--accent-emerald)' : 'var(--accent-amber)';
+
+  const il = $('issueList');
+  il.innerHTML = q.issues.length
+    ? q.issues.map(t => `<div class="issue-item"><span style="color:var(--accent-amber);">▲</span><span>${esc(t)}</span></div>`).join('')
+    : '<div class="issue-item"><span style="color:var(--accent-emerald);">●</span><span>六维指标全部达标，采集质量合格</span></div>';
+}
+
+/* ---------------------------------------------------------------- 渲染: 声像对照 */
+function renderVisual() {
+  const cur = S.current;
+  const wave = $('waveCanvas');
+  if (!cur) {
+    drawWave(wave, [], {}); drawHeat($('melCanvas'), null); drawHeat($('cwtCanvas'), null);
+    return;
+  }
+  const vis = cur.visualization, seg = cur.segmentation || {};
+  const total = vis.vis_duration_sec || cur.duration_sec;
+  drawWave(wave, vis.waveform_500pts || [], {
+    s1: seg.s1_centers_sec, s2: seg.s2_centers_sec, totalSec: total,
+    playhead: S.playing ? S.playT : null,
+    sel: S.zoomTimeSec ? [S.zoomTimeSec - 0.25, S.zoomTimeSec + 0.25] : null
+  });
+  $('waveTag').textContent = `${cur.duration_sec}s · ${cur.sample_rate}Hz`;
+  drawHeat($('melCanvas'), vis.mel, { cmap: 'magma', yLabel: '20–800 Hz', xLabel: 'time' });
+  drawHeat($('cwtCanvas'), vis.cwt, { cmap: 'viridis', yLabel: '25–450 Hz (CWT)', xLabel: 'time' });
+  renderZoom();
+}
+
+function renderZoom() {
+  const cur = S.current, cv = $('zoomCanvas');
+  if (!cv || !cur) { drawWave(cv, [], {}); return; }
+  const pts = cur.visualization.waveform_500pts || [];
+  const total = cur.visualization.vis_duration_sec || cur.duration_sec;
+  if (S.zoomTimeSec == null) {
+    drawWave(cv, pts, {});
+    $('zoomTag').textContent = '点击上方波形或谱图定位局部';
+    return;
+  }
+  const half = 0.25;
+  const i0 = Math.max(0, Math.floor(((S.zoomTimeSec - half) / total) * pts.length));
+  const i1 = Math.min(pts.length, Math.ceil(((S.zoomTimeSec + half) / total) * pts.length));
+  const seg = pts.slice(i0, Math.max(i0 + 2, i1));
+  drawWave(cv, seg, {});
+  $('zoomTag').textContent = `放大区间 ${(S.zoomTimeSec - half).toFixed(2)}s – ${(S.zoomTimeSec + half).toFixed(2)}s`;
+}
+
+/* ---------------------------------------------------------------- 渲染: AI */
+function renderAI() {
+  const cur = S.current;
+  const p = cur && cur.prediction;
+  if (!p) { return; }
+  $('aiVerdict').textContent = p.label || '—';
+  $('aiVerdict').style.color = p.verdict_key === 'abnormal' ? 'var(--accent-rose)'
+    : p.verdict_key === 'normal' ? 'var(--accent-emerald)' : 'var(--accent-amber)';
+  $('aiReason').textContent = p.explanation || '—';
+  $('aiProbBig').textContent = p.prob_abnormal != null ? pct(p.prob_abnormal) : '—';
+
+  const pn = p.prob_normal, pa = p.prob_abnormal;
+  $('pNormal').textContent = pn != null ? pct(pn) : '—';
+  $('pAbnormal').textContent = pa != null ? pct(pa) : '—';
+  $('barNormal').style.width = pn != null ? (pn * 100).toFixed(1) + '%' : '0%';
+  $('barAbnormal').style.width = pa != null ? (pa * 100).toFixed(1) + '%' : '0%';
+
+  const u = p.uncertainty;
+  $('uncVal').textContent = u != null ? fmt(u, 4) : '—';
+  $('uncBar').style.width = u != null ? Math.min(100, u * 200).toFixed(1) + '%' : '0%';
+  $('mcLegend').innerHTML = p.mc_samples
+    ? p.mc_samples.map((v, i) => `<span><i style="background:var(--accent-cyan);"></i>MC#${i} ${pct(v)}</span>`).join('')
+    : '<span>MC-Dropout 未启用 (权重未载入)</span>';
+
+  // Grad-CAM
+  const camCv = $('camCanvas');
+  const cam = cur.gradcam;
+  if (cam && S.showCam) {
+    drawHeat(camCv, cam.cam, { cmap: 'jet', base: cur.visualization.mel, alpha: 175 });
+  } else {
+    drawHeat(camCv, cur.visualization.mel, { cmap: 'magma' });
+  }
+
+  // 四通道包络
+  const env = cur.segmentation && cur.segmentation.envelopes_4ch;
+  drawEnvelopes($('envCanvas'), env);
+
+  renderReport();
+}
+
+function drawEnvelopes(cv, env) {
+  if (!cv) return;
+  const ctx = cv.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  const w = cv.clientWidth || 400, h = cv.clientHeight || 200;
+  cv.width = w * dpr; cv.height = h * dpr;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, w, h);
+  const dark = isDark();
+  ctx.fillStyle = dark ? '#172234' : '#f8fafd'; ctx.fillRect(0, 0, w, h);
+  if (!env || !env.length) {
+    ctx.fillStyle = '#94a3b8'; ctx.font = '12px sans-serif'; ctx.textAlign = 'center';
+    ctx.fillText('分割模型未载入', w / 2, h / 2); return;
+  }
+  const colors = ['#0284c7', '#059669', '#d97706', '#e11d48'];
+  const names = ['Hilbert', '同态', '小波', 'PSD'];
+  const rowH = h / env.length;
+  env.forEach((ch, ci) => {
+    let mx = 0.001; ch.forEach(v => mx = Math.max(mx, Math.abs(v)));
+    ctx.strokeStyle = colors[ci % 4]; ctx.lineWidth = 1.3;
+    ctx.beginPath();
+    ch.forEach((v, i) => {
+      const x = (i / (ch.length - 1)) * w;
+      const y = rowH * ci + rowH / 2 - (v / mx) * (rowH * 0.38);
+      i ? ctx.lineTo(x, y) : ctx.moveTo(x, y);
+    });
+    ctx.stroke();
+    ctx.fillStyle = colors[ci % 4]; ctx.font = 'bold 9px monospace'; ctx.textAlign = 'left';
+    ctx.fillText(names[ci], 3, rowH * ci + 11);
+    ctx.strokeStyle = dark ? 'rgba(255,255,255,.06)' : 'rgba(15,23,42,.05)';
+    ctx.beginPath(); ctx.moveTo(0, rowH * (ci + 1)); ctx.lineTo(w, rowH * (ci + 1)); ctx.stroke();
+  });
+}
+
+function renderReport() {
+  const cur = S.current;
+  const box = $('reportBody');
+  if (!box || !cur) return;
+  const q = cur.quality, p = cur.prediction, seg = cur.segmentation || {};
+  const f = q.features;
+  box.innerHTML = `
+    <div style="font-size:12px;color:var(--text-secondary);line-height:1.9;">
+      <div><b>样本文件：</b>${esc(cur.filename)}　<b>采集时长：</b>${cur.duration_sec}s　
+           <b>采样率：</b>${cur.sample_rate}Hz　<b>推理引擎：</b>${esc(cur.engine_mode)}</div>
+      <div style="margin:10px 0 6px;font-weight:700;color:var(--text-primary);">一、六维采集质量评估</div>
+      <div>录音时长 ${f.duration_sec}s ｜ 均方根能量 ${f.rms_energy} ｜ 静音帧比例 ${f.silence_ratio}
+           ｜ 峰值削波 ${f.clipping_ratio} ｜ 频带信噪比 ${f.snr_proxy_db} dB ｜ 稳定系数 ${f.stability_cv}</div>
+      <div>质控结论：<b style="color:${q.passed ? 'var(--accent-emerald)' : 'var(--accent-rose)'}">${esc(q.status_text)}</b>
+           ${q.sqa && q.sqa.prob_quality_pass != null ? '（SQA 模型合格概率 ' + pct(q.sqa.prob_quality_pass) + '）' : ''}</div>
+
+      <div style="margin:10px 0 6px;font-weight:700;color:var(--text-primary);">二、S1/S2 心音周期分割</div>
+      <div>${seg.ready
+        ? `识别 S1 事件 <b>${(seg.s1_centers_sec || []).length}</b> 个、S2 事件 <b>${(seg.s2_centers_sec || []).length}</b> 个；
+           平均心音周期 <b>${seg.cycle_ms || '—'} ms</b>（约 ${seg.cycle_ms ? Math.round(60000 / seg.cycle_ms) : '—'} BPM）。`
+        : '分割模型权重未载入。'}</div>
+
+      <div style="margin:10px 0 6px;font-weight:700;color:var(--text-primary);">三、智能辅助分类结论</div>
+      <div>判定：<b style="color:${p.verdict_key === 'abnormal' ? 'var(--accent-rose)' : p.verdict_key === 'normal' ? 'var(--accent-emerald)' : 'var(--accent-amber)'}">${esc(p.label)}</b>
+           ${p.prob_abnormal != null ? `｜ 异常概率 ${pct(p.prob_abnormal)} ｜ 认知不确定度 ${fmt(p.uncertainty, 4)}` : ''}</div>
+      <div style="color:var(--text-secondary);">${esc(p.explanation || '')}</div>
+      <div style="margin-top:14px;padding-top:10px;border-top:1px dashed var(--border-subtle);font-size:11px;color:var(--text-muted);">
+        ⚠ 本报告由「声见其迹 SONOTRACE」算法自动生成，仅提供辅助分析参考，<b>不替代专业医师诊断</b>。最终诊断请以临床医师意见为准。
+      </div>
+    </div>`;
+}
+
+/* ---------------------------------------------------------------- 渲染: 论文看板 */
+function renderResearch() {
+  const ov = S.overview, ex = S.experiments, ds = S.datasets, sq = S.sqa, sg = S.seg;
+  if (ex) {
+    $('expProgress').textContent = `${ex.completed} / ${ex.total} 已完成`;
+    const h = ex.headline || {};
+    const items = [
+      { v: fmt(h.proposed_macc), l: 'Proposed MAcc/UAR' },
+      { v: fmt(h.proposed_auroc), l: 'Proposed AUROC' },
+      { v: h.gain_over_naive != null ? signed(h.gain_over_naive) : '—', l: '相对多源混训增益' },
+      { v: h.gain_lodo != null ? signed(h.gain_lodo) : '—', l: 'LODO 抗捷径增益' },
+      { v: fmt(sq && sq['5fold_mean_auc']), l: 'SQA 5 折 AUC' },
+      { v: fmt(sg && sg.best_event_f1), l: '分割事件级 F1' },
+    ];
+    $('researchKpi').innerHTML = items.map(i =>
+      `<div class="kpi"><div class="k-val">${esc(i.v)}</div><div class="k-lab">${esc(i.l)}</div></div>`).join('');
+  }
+
+  // 实验表
+  const tb = $('expTableBody');
+  if (tb && ex) {
+    tb.innerHTML = ex.items.map(it => {
+      const m = it.metrics || {}, c = it.config || {};
+      const best = it.name === 'cross_proposed_full';
+      if (!it.available) {
+        return `<tr><td>${esc(it.label)}</td><td class="mono">训练中</td>` +
+               `<td colspan="7"><span class="badge-todo">TBD</span> 实验队列中，完成后自动显示</td></tr>`;
+      }
+      const cfgTxt = [c.model, c.protocol, c.test_domain || c.test_dataset].filter(Boolean).join(' · ');
+      return `<tr class="${best ? 'best' : ''}">
+        <td>${esc(it.label)}${best ? ' <span class="badge-live">主模型</span>' : ''}</td>
+        <td class="mono" style="font-size:11px;">${esc(cfgTxt)}</td>
+        <td class="mono"><b>${fmt(m.macc_uar)}</b></td>
+        <td class="mono">${fmt(m.auroc)}</td>
+        <td class="mono">${fmt(m.sensitivity)}</td>
+        <td class="mono">${fmt(m.specificity)}</td>
+        <td class="mono">${fmt(m.macro_f1)}</td>
+        <td class="mono">${fmt(m.params_M, 1)}M</td>
+        <td class="mono">${fmt(m.latency_ms_5s_clip, 2)}ms</td>
+      </tr>`;
+    }).join('');
+  }
+
+  // 数据集表
+  const dtb = $('datasetTableBody');
+  if (dtb && ds && ds.available) {
+    const per = {};
+    (ds.per_dataset || []).forEach(r => per[r.dataset] = r);
+    dtb.innerHTML = (ds.datasets || []).map(d => {
+      const p = per[d.dataset] || {};
+      const dom = Object.keys(d.domains || {}).length;
+      const sr = Object.keys(d.sample_rates || {}).join('/');
+      const dmm = (d.duration_min_med_max || []).map(x => Number(x).toFixed(1)).join(' / ');
+      return `<tr>
+        <td>${esc(d.dataset)}</td>
+        <td class="mono">${(d.recordings || 0).toLocaleString()}</td>
+        <td class="mono">${(d.subjects || 0).toLocaleString()}</td>
+        <td class="mono">${p.hours != null ? p.hours.toFixed(2) : '—'}</td>
+        <td class="mono">${p.mean_sec != null ? p.mean_sec.toFixed(1) : '—'}</td>
+        <td class="mono">${dom}</td>
+        <td class="mono">${esc(sr)}</td>
+        <td class="mono" style="font-size:11px;">${esc(dmm)}</td>
+      </tr>`;
+    }).join('');
+    $('datasetTotals').textContent =
+      `${(ds.total_records || 0).toLocaleString()} 条 · ${ds.total_hours} h · ${(ds.total_subjects || 0).toLocaleString()} 受试者 · ${ds.n_domains} 设备域`;
+  }
+
+  // 分割曲线
+  if (sg && sg.available && sg.curve) {
+    drawLine($('segCurveCanvas'), [
+      { data: sg.curve.map(c => c.frame_acc), color: '#0284c7', width: 2 },
+      { data: sg.curve.map(c => c.event_f1), color: '#e11d48', width: 2 }
+    ], { xLabel: 'epoch 1 → ' + sg.epochs });
+  }
+
+  // SQA 特征重要性
+  if (sq && sq.available && sq.feature_importance) {
+    const labels = sq.feature_labels || {};
+    const fi = sq.feature_importance;
+    const items = Object.keys(fi).map(k => ({ label: labels[k] || k, value: fi[k] }))
+      .sort((a, b) => b.value - a.value);
+    drawBars($('sqaImpCanvas'), items);
+  }
+}
+
+function renderAll() {
+  renderKpi(); renderHero(); renderQuality(); renderVisual(); renderAI(); renderResearch();
+}
+
+/* ---------------------------------------------------------------- 分析动作 */
+async function analyzeSample(name) {
+  loading(true);
+  try {
+    const r = await apiPost('/api/analyze_sample?gradcam=' + (S.showCam ? 'true' : 'false') + '&name=' + encodeURIComponent(name));
+    applyResult(r, name);
+    toast('已分析 ' + name, 'ok');
+  } catch (e) {
+    toast('分析失败: ' + e.message, 'err');
+  } finally { loading(false); }
+}
+
+async function apiPost(url) {
+  const r = await fetch(API + url, { method: 'POST' });
+  if (!r.ok) throw new Error(url + ' -> HTTP ' + r.status);
+  return r.json();
+}
+
+async function analyzeUpload(file) {
+  loading(true);
+  try {
+    const r = await apiPostFile('/api/analyze?gradcam=' + (S.showCam ? 'true' : 'false'), file);
+    applyResult(r, file.name);
+    toast('上传分析完成: ' + file.name, 'ok');
+    switchPage('visual');
+  } catch (e) {
+    toast('上传分析失败: ' + e.message, 'err');
+  } finally { loading(false); }
+}
+
+function applyResult(r, name) {
+  S.current = r;
+  S.currentSample = name;
+  S.zoomTimeSec = null;
+  stopPlayback();
+  renderAll();
+  if ($('sampleSelect') && S.samples.some(s => s.name === name)) $('sampleSelect').value = name;
+  // 预取音频
+  if (S.samples.some(s => s.name === name)) loadAudio(name);
+}
+
+/* ---------------------------------------------------------------- 音频播放 */
+async function loadAudio(name) {
+  try {
+    const r = await fetch(API + '/api/sample_audio/' + encodeURIComponent(name));
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const buf = await r.arrayBuffer();
+    if (!S.audioCtx) S.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    S.audioBuf = await S.audioCtx.decodeAudioData(buf);
+  } catch (e) { S.audioBuf = null; }
+}
+
+function stopPlayback() {
+  S.playing = false;
+  if (S.srcNode) { try { S.srcNode.stop(); } catch (e) {} S.srcNode = null; }
+  if (S.rafId) { cancelAnimationFrame(S.rafId); S.rafId = null; }
+  const b = $('playBtnText'); if (b) b.textContent = '播放';
+}
+
+async function togglePlay() {
+  if (S.playing) { stopPlayback(); renderVisual(); return; }
+  if (!S.currentSample) { toast('请先选择样本', 'err'); return; }
+  if (!S.audioBuf) await loadAudio(S.currentSample);
+  if (!S.audioBuf) { toast('该样本音频不可用', 'err'); return; }
+  const ctx = S.audioCtx;
+  if (ctx.state === 'suspended') await ctx.resume();
+  const src = ctx.createBufferSource();
+  src.buffer = S.audioBuf;
+  src.connect(ctx.destination);
+  S.srcNode = src;
+  S.playing = true;
+  S.playDur = S.audioBuf.duration;
+  const t0 = ctx.currentTime;
+  src.start();
+  $('playBtnText').textContent = '停止';
+  const tick = () => {
+    if (!S.playing) return;
+    S.playT = ctx.currentTime - t0;
+    if (S.playT >= S.playDur) { stopPlayback(); renderVisual(); return; }
+    renderVisual();
+    S.rafId = requestAnimationFrame(tick);
+  };
+  S.rafId = requestAnimationFrame(tick);
+}
+
+function playCurrentAudio() { switchPage('visual'); togglePlay(); }
+
+function toggleGradcam() {
+  S.showCam = $('camToggle').checked;
+  renderAI();
+}
+
+/* ---------------------------------------------------------------- 交互: 点击定位放大 */
+function bindCanvasClick(cv, cb) {
+  if (!cv) return;
+  cv.addEventListener('click', ev => {
+    const r = cv.getBoundingClientRect();
+    cb((ev.clientX - r.left) / r.width);
+  });
+}
+
+/* ---------------------------------------------------------------- 初始化 */
+async function boot() {
+  drawDotGrid();
+  window.addEventListener('resize', () => { drawDotGrid(); if (S.current) renderAll(); });
+  window.addEventListener('mousemove', e => { gMouse.x = e.clientX; gMouse.y = e.clientY; drawDotGrid(); });
+
+  // 画布交互
+  bindCanvasClick($('waveCanvas'), f => {
+    const cur = S.current; if (!cur) return;
+    const total = cur.visualization.vis_duration_sec || cur.duration_sec;
+    S.zoomTimeSec = f * total; renderZoom(); renderVisual();
+  });
+  bindCanvasClick($('melCanvas'), f => {
+    const cur = S.current; if (!cur) return;
+    const total = cur.visualization.vis_duration_sec || cur.duration_sec;
+    S.zoomTimeSec = f * total; renderZoom(); renderVisual();
+  });
+  bindCanvasClick($('cwtCanvas'), f => {
+    const cur = S.current; if (!cur) return;
+    const total = cur.visualization.vis_duration_sec || cur.duration_sec;
+    S.zoomTimeSec = f * total; renderZoom(); renderVisual();
+  });
+
+  // 上传
+  const dz = $('dropZone'), fi = $('fileInput');
+  if (dz && fi) {
+    dz.onclick = () => fi.click();
+    fi.onchange = () => { if (fi.files[0]) analyzeUpload(fi.files[0]); };
+    ['dragenter', 'dragover'].forEach(ev => dz.addEventListener(ev, e => { e.preventDefault(); dz.classList.add('hover'); }));
+    ['dragleave', 'drop'].forEach(ev => dz.addEventListener(ev, e => { e.preventDefault(); dz.classList.remove('hover'); }));
+    dz.addEventListener('drop', e => {
+      const f = e.dataTransfer.files && e.dataTransfer.files[0];
+      if (f) analyzeUpload(f);
+    });
+  }
+
+  // 后端探测
+  try {
+    const h = await apiGet('/api/health');
+    S.online = true;
+    const nW = Object.values(h.weights || {}).filter(w => w.loaded).length;
+    $('engineText').textContent = `${h.engine_mode === 'real_pytorch_model' ? '真模型' : 'DSP 模式'} · ${nW}/3 权重 · ${h.device}`;
+    $('engineText').style.color = 'var(--accent-emerald)';
+    $('hwDot').className = 'pulse-dot emerald';
+    $('brandTag').textContent = 'SONOTRACE v' + (h.version || '3.0');
+  } catch (e) {
+    S.online = false;
+    $('engineText').textContent = '后端离线 · 演示模式';
+    $('engineText').style.color = 'var(--accent-amber)';
+    $('hwDot').className = 'pulse-dot amber';
+  }
+
+  // 拉取真实实验数据
+  if (S.online) {
+    try { S.overview = await apiGet('/api/overview'); } catch (e) {}
+    try { S.experiments = await apiGet('/api/experiments'); } catch (e) {}
+    try { S.datasets = await apiGet('/api/datasets'); } catch (e) {}
+    try { S.sqa = await apiGet('/api/sqa'); } catch (e) {}
+    try { S.seg = await apiGet('/api/seg'); } catch (e) {}
+    try { S.samples = (await apiGet('/api/samples')).samples || []; } catch (e) {}
+  }
+
+  renderKpi(); renderSamples(); renderResearch();
+
+  // 自动分析第一条真实样本, 保证打开即有内容
+  if (S.samples.length) {
+    await analyzeSample(S.samples[0].name);
+  } else {
+    renderAll();
+  }
+
+  // 支持深链接: #visual / #ai / #research / #acquisition
+  const h = (location.hash || '').replace('#', '');
+  if (['dashboard', 'acquisition', 'visual', 'ai', 'research'].includes(h)) {
+    switchPage(h);
+  }
+}
+
+window.addEventListener('hashchange', () => {
+  const h = (location.hash || '').replace('#', '');
+  if (['dashboard', 'acquisition', 'visual', 'ai', 'research'].includes(h)) switchPage(h);
+});
+
+boot();
+</script>
+</body>
+</html>
