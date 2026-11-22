@@ -96,9 +96,17 @@ def fetch(sftp, remote, local, dry, tag=""):
     os.makedirs(os.path.dirname(local), exist_ok=True)
     try:
         sftp.get(remote, local)
+        # 拒绝 0 字节 / 空内容 (远端文件可能正在写入)
+        if os.path.getsize(local) == 0:
+            os.remove(local)
+            print("  EMPT %-46s (远端文件为空, 已跳过)" % tag)
+            return False
         print("  OK   %-46s %9.1f KB" % (tag, os.path.getsize(local) / 1024))
         return True
     except IOError as ex:
+        # 清理可能被部分写入的本地文件, 避免污染 results/
+        if os.path.exists(local) and os.path.getsize(local) == 0:
+            os.remove(local)
         print("  MISS %-46s %s" % (tag, ex))
         return False
 

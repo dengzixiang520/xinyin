@@ -48,10 +48,20 @@ def analyze(wav_path: str, filename: str = "", include_gradcam: bool = True) -> 
     cam = compute_gradcam(y) if (include_gradcam and cls.get("ready")) else None
 
     # ---------------- 结论与文案 ----------------
+    # 判定策略严格对应论文的风险-覆盖率(risk-coverage)机制:
+    # 1) 先看采集质量 —— 质量不达标一律不下结论
+    # 2) 再看认知不确定度 —— 超过阈值即拒识, 交人工复核 (选择性拒识)
+    # 3) 其余情况才给出二分类判定
+    UNC_ABSTAIN = 0.30
     if not quality["passed"]:
-        verdict = "不确定 / 待复核"
+        verdict = "采集质量未达标 · 待复核"
         verdict_key = "pending"
-        reason = "采集质量未达标，建议重新采集后再判定"
+        reason = "六维质控未通过，建议重新采集后再判定"
+    elif cls.get("ready") and cls.get("uncertainty") is not None and cls["uncertainty"] >= UNC_ABSTAIN:
+        verdict = "不确定 · 建议人工复核"
+        verdict_key = "pending"
+        reason = (f"模型 MC-Dropout 认知不确定度 {cls['uncertainty']:.3f} ≥ 拒识阈值 {UNC_ABSTAIN}"
+                  f"（异常概率仅 {cls['prob_abnormal']*100:.1f}%），按选择性拒识策略不作自动结论")
     elif cls.get("ready"):
         if cls["prob_abnormal"] >= 0.5:
             verdict = "疑似异常心音"
@@ -117,6 +127,8 @@ def analyze(wav_path: str, filename: str = "", include_gradcam: bool = True) -> 
             "error": cls.get("error"),
             "label": verdict,
             "verdict_key": verdict_key,
+            "abstain_threshold": UNC_ABSTAIN,
+            "abstained": verdict_key == "pending" and quality["passed"],
             "prob_abnormal": cls.get("prob_abnormal"),
             "prob_normal": cls.get("prob_normal"),
             "uncertainty": cls.get("uncertainty"),
