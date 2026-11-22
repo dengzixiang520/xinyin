@@ -30,7 +30,7 @@
 ```text
 sonotrace-web/
 ├── backend/
-│   ├── app.py             FastAPI：静态托管 + /api/*（31 个接口）
+│   ├── app.py             FastAPI：静态托管 + /api/*（30 个接口）
 │   ├── config.py          超参口径（严格对齐论文 experiment_config.yaml）+ 检查点池
 │   ├── engine.py          检查点池/分割/SQA 加载与推理 + Grad-CAM（MC-Dropout 固定种子）
 │   ├── pipeline.py        单样本端到端分析 + 双门控判定 + 多模型对比
@@ -42,11 +42,14 @@ sonotrace-web/
 ├── frontend/
 │   └── index.html         单文件前端（3 套主题 / 6 大模块 / 全 Canvas 渲染）
 ├── tools/
-│   └── sync_results.py    从训练服务器同步真实产物（指标 + 权重 + 图）
+│   ├── sync_results.py    从训练服务器同步真实产物（指标 + 权重 + 图 + 逐条预测）
+│   └── export_tables.py   把真实产物导出成 docs/tables/*.csv，供评委直接取用
 ├── docs/
-│   ├── 接口说明.md         30 个接口的完整契约与字段含义
+│   ├── 竞赛答辩报告.md     ★ 答辩主文档：数据 / 提升 / 边界 / 口播稿 / Q&A / 数字卡
+│   ├── 校赛答辩数据支撑.md  数字口径速查（答辩报告的精简版）
 │   ├── 答辩演示脚本.md     3 分钟路演动线 + 6 个加时模块
-│   └── 校赛答辩数据支撑.md  答辩用数字口径、电梯稿、追问 Q&A、红线清单
+│   ├── 接口说明.md         30 个接口的完整契约与字段含义
+│   └── tables/            竞赛信息表 CSV（由 tools/export_tables.py 自动生成）
 ├── results/               论文真实训练产物（JSON/CSV/逐条预测）
 │   └── experiments/       每个实验的 metrics.json
 ├── weights/               训练权重（*.pt / *.pkl，不纳入版本库）
