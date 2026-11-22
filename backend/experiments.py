@@ -74,10 +74,38 @@ def seg_summary() -> dict:
             "final_frame_acc": curve[-1].get("frame_acc") if curve else None}
 
 
+# ==================================================================== 清单读取
+# 公开仓库里放的是**脱敏清单** (master_pcg_manifest.public.csv):
+#   - subject_id -> subject_hash (确定性哈希, 同一受试者值相同)
+#   - rel_path   -> path_present (0/1)
+#   其余敏感列(age_group/site/label_fine/site_has_murmur 等)已移除。
+# 脱敏不破坏可验证性: 隔离性检查与跨折检查仍能判定, 见 tools/sanitize_manifest.py。
+# 本地开发若存在原始清单则优先使用(两者统计结果一致), 便于交叉核对。
+MANIFEST_PUBLIC = "master_pcg_manifest.public.csv"
+MANIFEST_RAW = "master_pcg_manifest.csv"
+
+
+def _manifest_path() -> str | None:
+    """优先原始清单(本地有则用), 否则用脱敏清单。"""
+    for name in (MANIFEST_RAW, MANIFEST_PUBLIC):
+        p = os.path.join(C.RESULTS_DIR, name)
+        if os.path.exists(p):
+            return p
+    return None
+
+
+def _subject_col(df) -> str | None:
+    """受试者列: 原始清单叫 subject_id, 脱敏清单叫 subject_hash。"""
+    for c in ("subject_id", "subject_hash"):
+        if c in df.columns:
+            return c
+    return None
+
+
 def _manifest_totals() -> dict:
-    """从 master_pcg_manifest.csv 计算精确总时长 (data_audit_report 只给了 min/med/max)。"""
-    p = os.path.join(C.RESULTS_DIR, "master_pcg_manifest.csv")
-    if not os.path.exists(p):
+    """从清单计算精确总时长 (data_audit_report 只给了 min/med/max)。"""
+    p = _manifest_path()
+    if not p:
         return {}
     try:
         import pandas as pd
@@ -85,10 +113,11 @@ def _manifest_totals() -> dict:
         total_sec = float(df["duration_sec"].sum())
         by = (df.groupby("dataset")["duration_sec"]
                 .agg(["count", "sum", "mean"]).reset_index())
+        subj = _subject_col(df)
         return {
             "total_records": int(len(df)),
             "total_hours": round(total_sec / 3600.0, 2),
-            "total_subjects": int(df["subject_id"].nunique()),
+            "total_subjects": int(df[subj].nunique()) if subj else None,
             "n_domains": int(df["domain_id"].nunique()),
             "per_dataset": [
                 {"dataset": r["dataset"], "records": int(r["count"]),
@@ -359,8 +388,8 @@ def _manifest_checks() -> tuple[list, dict]:
     只声明清单本身能证明的事: 受试者级隔离、标签完整性、时长有效性、
     字段填充率。文件字节级完整性以 data_audit_report 的 corrupt_wavs 为准。
     """
-    p = os.path.join(C.RESULTS_DIR, "master_pcg_manifest.csv")
-    if not os.path.exists(p):
+    p = _manifest_path()
+    if not p:
         return [], {}
     try:
         import pandas as pd
@@ -371,10 +400,13 @@ def _manifest_checks() -> tuple[list, dict]:
     n = len(df)
     checks = []
     detail = {}
+    subj = _subject_col(df)
+    if subj is None:
+        return [], {}
 
     # 1) 外测集受试者是否泄漏进训练集
-    train_subj = set(df[df["dataset"].isin(TRAIN_DATASETS)]["subject_id"].astype(str))
-    test_subj = set(df[df["dataset"].isin(TEST_DATASETS)]["subject_id"].astype(str))
+    train_subj = set(df[df["dataset"].isin(TRAIN_DATASETS)][subj].astype(str))
+    test_subj = set(df[df["dataset"].isin(TEST_DATASETS)][subj].astype(str))
     leak = train_subj & test_subj
     checks.append({"name": "外测集受试者隔离",
                    "detail": f"ZCHSound {len(test_subj)} 名受试者与训练集交集 {len(leak)} 人",
@@ -389,7 +421,7 @@ def _manifest_checks() -> tuple[list, dict]:
     if "fold_internal" in df.columns:
         assigned = df[df["fold_internal"].notna() & (df["fold_internal"] >= 0)]
         unassigned = int((df["fold_internal"] == -1).sum())
-        g = assigned.groupby(["dataset", "subject_id"])["fold_internal"].nunique()
+        g = assigned.groupby(["dataset", subj])["fold_internal"].nunique()
         multi = int((g > 1).sum())
         checks.append({"name": "受试者级折内唯一",
                        "detail": (f"{len(g)} 名受试者跨折 {multi} 人"
@@ -414,10 +446,17 @@ def _manifest_checks() -> tuple[list, dict]:
                        "passed": bad == 0})
 
     # 5) 路径字段填充
+    #    原始清单用 rel_path(真实路径); 脱敏清单用 path_present(0/1)。
+    #    两者语义都是「该条记录是否关联到音频文件」, 所以检查含义不变。
     if "rel_path" in df.columns:
         miss = int(df["rel_path"].isna().sum())
         checks.append({"name": "音频路径完整性",
                        "detail": f"缺失 {miss} / {n} 条",
+                       "passed": miss == 0})
+    elif "path_present" in df.columns:
+        miss = int((df["path_present"].fillna(0) == 0).sum())
+        checks.append({"name": "音频路径完整性",
+                       "detail": f"未关联音频 {miss} / {n} 条（清单已脱敏，仅含存在性标记）",
                        "passed": miss == 0})
 
     return checks, detail

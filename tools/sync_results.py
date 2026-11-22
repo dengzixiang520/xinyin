@@ -257,6 +257,19 @@ def main():
         print("\n[+] 由主模型权重反解设备域映射")
         write_domain_map()
 
+    if not args.dry_run and do_metrics:
+        # 原始清单含受试者 ID / 医院路径 / 临床分级, 不入库;
+        # 后端读的是脱敏版, 所以同步完必须重新生成一次。
+        print("\n[+] 生成脱敏清单 (公开仓库只放 public 版)")
+        try:
+            import subprocess
+            subprocess.run([sys.executable,
+                            os.path.join(LOCAL_ROOT, "tools", "sanitize_manifest.py")],
+                           check=False)
+        except Exception as ex:                                  # noqa: BLE001
+            print("  [warn] 脱敏清单生成失败: %s: %s" % (type(ex).__name__, ex))
+            print("         请手动运行: python tools/sanitize_manifest.py")
+
     sftp.close()
     c.close()
     print("\n同步完成。重启后端即可加载新权重。")

@@ -298,9 +298,35 @@ case3 是有意保留的「模型自己也不确定」病例，正文可直接�
 
 ## 8. 数据与合规声明
 
-* `samples/` 与 `weights/` **不纳入版本库**：
-  CirCor DigiScope 与 PhysioNet/CinC 2016 属**受控访问（credentialed access）**数据集，
-  ZCHSound 为医院内部数据，将原始录音或由其派生的权重公开发布可能违反数据使用协议。
+四类内容**不纳入版本库**，一律由 `tools/sync_results.py` 从训练服务器获取：
+
+| 内容 | 原因 |
+|---|---|
+| `samples/` | 原始临床录音（CirCor / ZCHSound） |
+| `weights/` | 由受控数据派生的训练权重（约 230 MB） |
+| `results/predictions/` | **行级**预测：含记录编号 + 临床标签 + 逐条概率 |
+| `results/master_pcg_manifest.csv` | **行级**临床清单：含受试者 ID、医院内部路径、年龄段、站点、临床分级 |
+
+CirCor DigiScope 与 PhysioNet/CinC 2016 属**受控访问（credentialed access）**数据集，
+ZCHSound 为医院内部数据，公开发布原始录音、由其派生的权重、或行级标注都会违反数据使用协议。
+
+### 8.1 清单为什么放脱敏版
+
+仓库里入库的是 `results/master_pcg_manifest.public.csv`（由 `tools/sanitize_manifest.py` 生成）：
+
+| 原始列 | 脱敏后 | 说明 |
+|---|---|---|
+| `subject_id` | `subject_hash` | `sha256("sonotrace:数据集\|受试者")[:12]`，同一受试者哈希恒定 |
+| `rel_path` | `path_present` (0/1) | 保留「是否关联到音频」的判定，不泄露任何真实路径 |
+| `age_group` / `site` / `label_fine` / `label_binary_clinical` / `site_has_murmur` / `sqi_label` / `seg_tsv_rel_path` / `record_uid` | **移除** | 与统计与核验无关 |
+
+**脱敏不损失可验证性**：因为哈希对同一受试者恒定，
+「外测集受试者隔离」与「受试者级折内唯一」两项检查仍然成立。
+实测两种清单（原始 / 脱敏）跑出的结果**完全一致**：
+11,538 条 / 5,659 人 / 75.36 h / 14 域，审计 **6/6 通过**。
+
+### 8.2 临床合规
+
 * 本系统输出**仅为辅助分析参考，不替代专业医师诊断**。界面与报告中均含此声明。
 
 ---

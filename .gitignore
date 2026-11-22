@@ -16,6 +16,12 @@ samples/*.ogg
 # 用 `python tools/sync_results.py --only-predictions` 从训练服务器获取。
 results/predictions/
 
+# 原始行级临床清单 (受试者ID / 医院内部路径 / 年龄段 / 站点 / 临床分级)
+# 公开仓库只放脱敏版 master_pcg_manifest.public.csv:
+#   subject_id -> subject_hash, rel_path -> path_present, 其余敏感列移除
+# 生成: `python tools/sanitize_manifest.py`
+results/master_pcg_manifest.csv
+
 # 前端构建中间产物与截图
 frontend/_part_*.html
 *.png
